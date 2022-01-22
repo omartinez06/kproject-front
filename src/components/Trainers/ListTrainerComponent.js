@@ -16,17 +16,17 @@ import './../TableCrud.css';
 
 const ListTrainerComponent = () => {
 
-    const [trainers, setTrainers] = useState([])
+    const [trainers, setTrainers] = useState([]);
     const [kyus, setKyus] = useState([]);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [submitted, setSubmitted] = useState(false);
     const [id, setId] = useState(null);
     const [selectedTrainer, setSelectedTrainer] = useState(null);
-    const [name, setName] = useState('')
-    const [lastName, setLastName] = useState('')
-    const [kyuId, setKyuId] = useState('')
-    const [dpi, setDpi] = useState('')
-    const [birth, setBirth] = useState('')
+    const [name, setName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [kyuId, setKyuId] = useState('');
+    const [dpi, setDpi] = useState('');
+    const [birth, setBirth] = useState('');
     const [trainerDialog, setTrainerDialog] = useState(false);
     const [deleteTrainerDialog, setDeleteTrainerDialog] = useState(false);
     const history = useHistory();
@@ -99,10 +99,11 @@ const ListTrainerComponent = () => {
     }
 
     const setEditableTrainer = (editableTrainer) => {
+        getAllKyus();
         setName(editableTrainer.name);
         setLastName(editableTrainer.lastName);
         setDpi(editableTrainer.dpi);
-        setBirth(editableTrainer.birth);
+        setBirth(new Date(editableTrainer.birth));
         setKyuId(editableTrainer.kyu.id);
         setId(editableTrainer.id);
         setTrainerDialog(true);
@@ -216,7 +217,7 @@ const ListTrainerComponent = () => {
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>
 
-            <Dialog visible={trainerDialog} style={{ width: '450px' }} header="Trainer Details" modal className="p-fluid" footer={trainerDialogFooter} onHide={hideDialog}>
+            <Dialog visible={trainerDialog} style={{ width: '20%' }} header="Trainer Details" modal className="p-fluid" footer={trainerDialogFooter} onHide={hideDialog}>
                 <div className="p-field">
                     <label htmlFor="name">Nombre</label>
                     <InputText id="name" value={name} onChange={(t) => setName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !name })} />
@@ -231,7 +232,7 @@ const ListTrainerComponent = () => {
                 <br />
                 <div className="p-field p-col-12 p-md-4">
                     <label htmlFor="birth">Fecha De Nacimiento</label>
-                    <Calendar id="birth" value={birth} onChange={(t) => setBirth(t.value)} monthNavigator yearNavigator yearRange="1930:2030"
+                    <Calendar id="birth" value={birth} onChange={(t) => setBirth(t.value)} monthNavigator yearNavigator yearRange="1930:2030" dateFormat="dd/mm/yy"
                         monthNavigatorTemplate={monthNavigatorTemplate} yearNavigatorTemplate={yearNavigatorTemplate} required autoFocus className={classNames({ 'p-invalid': submitted && !birth })} />
                     {submitted && !birth && <small className="p-error">Campo Requerido.</small>}
                 </div>
@@ -244,7 +245,7 @@ const ListTrainerComponent = () => {
                 <br />
                 <div className="p-field">
                     <label htmlFor="kyu">Grado</label>
-                    <Dropdown id="kyu" optionLabel="kyu" optionValue="id" value={kyuId} options={kyus} onChange={(t) => setKyuId(t.target.value)} placeholder="Select Kyu..." required autoFocus className={classNames({ 'p-invalid': submitted && !kyuId })}/>
+                    <Dropdown id="kyu" optionLabel="kyu" optionValue="id" value={kyuId} options={kyus} onChange={(t) => setKyuId(t.target.value)} placeholder="Select Kyu..." required autoFocus className={classNames({ 'p-invalid': submitted && !kyuId })} />
                     {submitted && !kyuId && <small className="p-error">Campo Requerido.</small>}
                 </div>
             </Dialog>
