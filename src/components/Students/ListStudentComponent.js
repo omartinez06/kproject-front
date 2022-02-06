@@ -28,6 +28,7 @@ const ListStudentComponent = () => {
     const [bloodType, setBloodType] = useState('');
     const [tutor, setTutor] = useState('');
     const [schedules, setSchedules] = useState([]);
+    const [schedule, setSchedule] = useState('');
     const [studentDialog, setStudentDialog] = useState(false);
     const [deleteStudentDialog, setDeleteStudentDialog] = useState(false);
     const [globalFilter, setGlobalFilter] = useState(null);
@@ -35,6 +36,17 @@ const ListStudentComponent = () => {
     const [selectedStudent, setSelectedStudent] = useState('');
     const history = useHistory();
     const toast = useRef(null);
+
+    const bloodTypeSelectItems = [
+        { label: 'O Negativo', value: 'O-' },
+        { label: 'O Positivo', value: 'O+' },
+        { label: 'A Negativo', value: 'A-' },
+        { label: 'A Positivo', value: 'A+' },
+        { label: 'B Negativo', value: 'B-' },
+        { label: 'B Positivo', value: 'B+' },
+        { label: 'AB Negativo', value: 'AB-' },
+        { label: 'AB Positivo', value: 'AB+' }
+    ];
 
     useEffect(() => {
         getAllStudents();
@@ -75,6 +87,9 @@ const ListStudentComponent = () => {
         setBloodType('');
         setTutor('');
         setSchedules([]);
+        setSchedule('');
+        getAllSchedules();
+        getAllKyus();
         setStudentDialog(true);
         setSubmitted(false);
     }
@@ -113,6 +128,7 @@ const ListStudentComponent = () => {
 
     const setEditableStudent = (editableStudent) => {
         getAllKyus();
+        getAllSchedules();
         setName(editableStudent.name);
         setLastName(editableStudent.lastName);
         setDpi(editableStudent.dpi);
@@ -120,14 +136,14 @@ const ListStudentComponent = () => {
         setBirth(editableStudent.birth);
         setBloodType(editableStudent.bloodType);
         setTutor(editableStudent.tutor);
+        setSchedule(editableStudent.schedule);
         setStudentDialog(true);
     }
 
     const saveOrUpdateStudent = () => {
         setSubmitted(true);
-        if (name && lastName && dpi && birth && kyuId && bloodType && tutor && schedules) {
-
-            const student = { name, lastName, dpi, birth, bloodType, tutor, schedules, kyuId }
+        if (name && lastName && dpi && birth && kyuId && bloodType && tutor && schedule) {
+            const student = { name, lastName, dpi, birth, bloodType, tutor, schedule, kyuId }
             if (id) {
                 StudentService.updateStudent(id, student).then((response) => {
                     history.push('/student')
@@ -153,6 +169,7 @@ const ListStudentComponent = () => {
             setBirth('');
             setBloodType('');
             setTutor('');
+            setSchedule('');
             setSchedules([]);
         }
     }
@@ -231,10 +248,69 @@ const ListStudentComponent = () => {
                 <Column field="birth" header="FECHA NACIMIENTO" sortable style={{ minWidth: '10rem' }} body={dateBodyFormat}></Column>
                 <Column field="dpi" header="DPI" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="kyu.kyu" header="GRADO" sortable style={{ minWidth: '12rem' }}></Column>
+                <Column field="schedule.schedule" header="HORARIO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="bloodType" header="TIPO SANGRE" sortable style={{ minWidth: '7rem' }}></Column>
                 <Column field="tutor" header="TUTOR" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>
+
+            <Dialog visible={studentDialog} style={{ width: '25%' }} header="Student Details" modal className="p-fluid" footer={studentDialogFooter} onHide={hideDialog}>
+                <div className="p-field">
+                    <label htmlFor="name">Nombre</label>
+                    <InputText id="name" value={name} onChange={(t) => setName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !name })} />
+                    {submitted && !name && <small className="p-error">Campo Requerido.</small>}
+                </div>
+                <br />
+                <div className="p-field">
+                    <label htmlFor="lastName">Apellido</label>
+                    <InputText id="lastName" value={lastName} onChange={(t) => setLastName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !lastName })} />
+                    {submitted && !lastName && <small className="p-error">Campo Requerido.</small>}
+                </div>
+                <br />
+                <div className="p-field p-col-12 p-md-4">
+                    <label htmlFor="birth">Fecha De Nacimiento</label>
+                    <Calendar id="birth" value={birth} onChange={(t) => setBirth(t.value)} monthNavigator yearNavigator yearRange="1930:2030" dateFormat="dd/mm/yy"
+                        monthNavigatorTemplate={monthNavigatorTemplate} yearNavigatorTemplate={yearNavigatorTemplate} required autoFocus className={classNames({ 'p-invalid': submitted && !birth })} />
+                    {submitted && !birth && <small className="p-error">Campo Requerido.</small>}
+                </div>
+                <br />
+                <div className="p-field">
+                    <label htmlFor="dpi">DPI</label>
+                    <InputText id="dpi" value={dpi} onChange={(t) => setDpi(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !dpi })} />
+                    {submitted && !dpi && <small className="p-error">Campo Requerido.</small>}
+                </div>
+                <br />
+                <div className="p-field">
+                    <label htmlFor="kyu">Grado</label>
+                    <Dropdown id="kyu" optionLabel="kyu" optionValue="id" value={kyuId} options={kyus} onChange={(t) => setKyuId(t.target.value)} placeholder="Seleccione grado..." required autoFocus className={classNames({ 'p-invalid': submitted && !kyuId })} />
+                    {submitted && !kyuId && <small className="p-error">Campo Requerido.</small>}
+                </div>
+                <br />
+                <div className="p-field">
+                    <label htmlFor="dpi">Tipo De Sangre</label>
+                    <Dropdown value={bloodType} options={bloodTypeSelectItems} onChange={(t) => setBloodType(t.target.value)} optionLabel="label" placeholder="Seleccione tipo de sangre..." required autoFocus className={classNames({ 'p-invalid': submitted && !bloodType })} />
+                    {submitted && !bloodType && <small className="p-error">Campo Requerido.</small>}
+                </div>
+                <br />
+                <div className="p-field">
+                    <label htmlFor="tutor">Tutor</label>
+                    <InputText id="tutor" value={tutor} onChange={(t) => setTutor(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !tutor })} />
+                    {submitted && !tutor && <small className="p-error">Campo Requerido.</small>}
+                </div>
+                <br />
+                <div className="p-field">
+                    <label htmlFor="schedule">Horario</label>
+                    <Dropdown id="schedule" optionLabel="schedule" optionValue="id" value={schedule} options={schedules} onChange={(e) => setSchedule(e.target.value)} placeholder="Seleccione Horario" maxSelectedLabels={5} required autoFocus className={classNames({ 'p-invalid': submitted && !schedule })} />
+                    {submitted && !schedule && <small className="p-error">Campo Requerido.</small>}
+                </div>
+            </Dialog>
+
+            <Dialog visible={deleteStudentDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteStudentDialogFooter} onHide={hideDeleteStudentDialog}>
+                <div className="confirmation-content">
+                    <i className="pi pi-exclamation-triangle p-mr-3" style={{ fontSize: '2rem' }} />
+                    {selectedStudent && <span> Esta seguro de borrar <b>{name} {lastName}</b> ? </span>}
+                </div>
+            </Dialog>
         </div>
     )
 }
