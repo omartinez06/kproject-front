@@ -132,11 +132,12 @@ const ListStudentComponent = () => {
         setName(editableStudent.name);
         setLastName(editableStudent.lastName);
         setDpi(editableStudent.dpi);
-        setKyuId(editableStudent.kyuId);
-        setBirth(editableStudent.birth);
+        setKyuId(editableStudent.kyu.id);
+        setBirth(new Date(editableStudent.birth));
         setBloodType(editableStudent.bloodType);
         setTutor(editableStudent.tutor);
-        setSchedule(editableStudent.schedule);
+        setSchedule(editableStudent.schedule.id);
+        setId(editableStudent.id);
         setStudentDialog(true);
     }
 
