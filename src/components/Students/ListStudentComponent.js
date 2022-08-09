@@ -133,11 +133,6 @@ const ListStudentComponent = () => {
     const setEditableStudent = (editableStudent) => {
         getAllKyus();
         getAllSchedules();
-        FileService.getFileImage(editableStudent.dpi).then((response) => {
-            console.debug(response.data);
-        }).catch(error => {
-            console.error(error);
-        })
         setName(editableStudent.name);
         setLastName(editableStudent.lastName);
         setDpi(editableStudent.dpi);
@@ -147,6 +142,7 @@ const ListStudentComponent = () => {
         setTutor(editableStudent.tutor);
         setSchedule(editableStudent.schedule.id);
         setId(editableStudent.id);
+        setViewUpload(true);
         setStudentDialog(true);
     }
 
@@ -200,7 +196,8 @@ const ListStudentComponent = () => {
             setTutor('');
             setSchedule('');
             setSchedules([]);
-            toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded with Basic Mode' });
+            window.location.reload(false);
+            toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
         }).catch(error => {
             console.error(error);
         })
@@ -266,6 +263,10 @@ const ListStudentComponent = () => {
         return <Dropdown value={e.value} options={e.options} onChange={(event) => e.onChange(event.originalEvent, event.value)} className="p-ml-2" style={{ lineHeight: 1 }} />;
     }
 
+    const imageBodyTemplate = (rowData) => {
+        return <img src={"http://localhost:9898/api/file/" + rowData.dpi} onError={(e) => e.target.src='https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
+    }
+
     return (
         <div className="datatable-crud">
             <Toast ref={toast} />
@@ -275,6 +276,7 @@ const ListStudentComponent = () => {
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} entrenadores" globalFilter={globalFilter} header={header}
                 scrollable scrollHeight="400px">
+                <Column field="image" header="IMAGEN" body={imageBodyTemplate}></Column>
                 <Column field="name" header="NOMBRE" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="lastName" header="APELLIDO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="birth" header="FECHA NACIMIENTO" sortable style={{ minWidth: '10rem' }} body={dateBodyFormat}></Column>
@@ -365,22 +367,24 @@ const ListStudentComponent = () => {
                                 </table>
                             </td>
                             <td>
-                                <div>
-                                    <table>
-                                        <tbody>
-                                            <tr>
-                                                <td>
-                                                    <Image src={'localhost:9898/api/file/' + dpi + '.jpg'} alt="Image" width="250" preview />
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                {viewUpload ?
+                                    <div>
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <Image src={"http://localhost:9898/api/file/" + dpi} alt="Image" width="250" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    : null}
                             </td>
                         </tr>
                     </tbody>

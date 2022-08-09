@@ -9,10 +9,6 @@ class FileService {
         formData.append("name", fileName);
         return axios.post(FILE_BASE_RESP_API_URL, formData, { headers: { "content-type": "multipart/form-data" } });
     }
-
-    getFileImage(fileName) {
-        return axios.get(`${FILE_BASE_RESP_API_URL}/${fileName}.jpg`);
-    }
 }
 
 export default new FileService();

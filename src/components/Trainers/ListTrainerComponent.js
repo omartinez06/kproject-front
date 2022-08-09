@@ -13,6 +13,9 @@ import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import KyuService from '../../services/KyuService';
 import './../TableCrud.css';
+import { FileUpload } from 'primereact/fileupload';
+import { Image } from 'primereact/image';
+import FileService from '../../services/FileService';
 
 const ListTrainerComponent = () => {
 
@@ -31,6 +34,7 @@ const ListTrainerComponent = () => {
     const [deleteTrainerDialog, setDeleteTrainerDialog] = useState(false);
     const history = useHistory();
     const toast = useRef(null);
+    const [viewUpload, setViewUpload] = useState(false);
 
     useEffect(() => {
         getAllTrainers();
@@ -106,6 +110,7 @@ const ListTrainerComponent = () => {
         setBirth(new Date(editableTrainer.birth));
         setKyuId(editableTrainer.kyu.id);
         setId(editableTrainer.id);
+        setViewUpload(true);
         setTrainerDialog(true);
     }
 
@@ -117,19 +122,35 @@ const ListTrainerComponent = () => {
                 TrainerService.updateTrainer(id, trainer).then((response) => {
                     history.push('/trainer')
                     getAllTrainers();
+                    setTrainerDialog(false);
+                    setName('');
+                    setLastName('');
+                    setDpi('');
+                    setBirth('');
+                    setKyuId('');
+                    setId('');
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Entrenador Modificado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
                 })
             } else {
                 TrainerService.createTrainer(trainer).then((response) => {
-                    history.push('/trainer');
-                    getAllTrainers();
+                    setViewUpload(true);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Entrenador Creado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
                 })
             }
+        }
+    }
+
+    const customUploader = async (event) => {
+        // convert file to base64 encoded 
+        const file = event.files[0];
+        FileService.createFileImage(file, dpi).then((response) => {
+            console.debug(response.data);
+            history.push('/trainer');
+            getAllTrainers();
             setTrainerDialog(false);
             setName('');
             setLastName('');
@@ -137,7 +158,11 @@ const ListTrainerComponent = () => {
             setBirth('');
             setKyuId('');
             setId('');
-        }
+            window.location.reload(false);
+            toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
+        }).catch(error => {
+            console.error(error);
+        })
     }
 
     const trainerDialogFooter = (
@@ -199,6 +224,10 @@ const ListTrainerComponent = () => {
     const yearNavigatorTemplate = (e) => {
         return <Dropdown value={e.value} options={e.options} onChange={(event) => e.onChange(event.originalEvent, event.value)} className="p-ml-2" style={{ lineHeight: 1 }} />;
     }
+    
+    const imageBodyTemplate = (rowData) => {
+        return <img src={"http://localhost:9898/api/file/" + rowData.dpi} onError={(e) => e.target.src='https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
+    }
 
     return (
         <div className="datatable-crud">
@@ -209,6 +238,7 @@ const ListTrainerComponent = () => {
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} entrenadores" globalFilter={globalFilter} header={header}
                 scrollable scrollHeight="400px">
+                <Column field="image" header="IMAGEN" body={imageBodyTemplate}></Column>
                 <Column field="name" header="NOMBRE" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="lastName" header="APELLIDO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="birth" header="FECHA NACIMIENTO" sortable style={{ minWidth: '12rem' }} body={dateBodyFormat}></Column>
@@ -217,37 +247,81 @@ const ListTrainerComponent = () => {
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>
 
-            <Dialog visible={trainerDialog} style={{ width: '20%' }} header="Trainer Details" modal className="p-fluid" footer={trainerDialogFooter} onHide={hideDialog}>
-                <div className="p-field">
-                    <label htmlFor="name">Nombre</label>
-                    <InputText id="name" value={name} onChange={(t) => setName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !name })} />
-                    {submitted && !name && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="lastName">Apellido</label>
-                    <InputText id="lastName" value={lastName} onChange={(t) => setLastName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !lastName })} />
-                    {submitted && !lastName && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field p-col-12 p-md-4">
-                    <label htmlFor="birth">Fecha De Nacimiento</label>
-                    <Calendar id="birth" value={birth} onChange={(t) => setBirth(t.value)} monthNavigator yearNavigator yearRange="1930:2030" dateFormat="dd/mm/yy"
-                        monthNavigatorTemplate={monthNavigatorTemplate} yearNavigatorTemplate={yearNavigatorTemplate} required autoFocus className={classNames({ 'p-invalid': submitted && !birth })} />
-                    {submitted && !birth && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="dpi">DPI</label>
-                    <InputText id="dpi" value={dpi} onChange={(t) => setDpi(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !dpi })} />
-                    {submitted && !dpi && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="kyu">Grado</label>
-                    <Dropdown id="kyu" optionLabel="kyu" optionValue="id" value={kyuId} options={kyus} onChange={(t) => setKyuId(t.target.value)} placeholder="Select Kyu..." required autoFocus className={classNames({ 'p-invalid': submitted && !kyuId })} />
-                    {submitted && !kyuId && <small className="p-error">Campo Requerido.</small>}
-                </div>
+            <Dialog visible={trainerDialog} style={{ width: '50%' }} header="Trainer Details" modal className="p-fluid" footer={trainerDialogFooter} onHide={hideDialog}>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="name">Nombre</label>
+                                                    <InputText id="name" value={name} onChange={(t) => setName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !name })} />
+                                                    {submitted && !name && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="lastName">Apellido</label>
+                                                    <InputText id="lastName" value={lastName} onChange={(t) => setLastName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !lastName })} />
+                                                    {submitted && !lastName && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div className="p-field p-col-12 p-md-4">
+                                                    <label htmlFor="birth">Fecha De Nacimiento</label>
+                                                    <Calendar id="birth" value={birth} onChange={(t) => setBirth(t.value)} monthNavigator yearNavigator yearRange="1930:2030" dateFormat="dd/mm/yy"
+                                                        monthNavigatorTemplate={monthNavigatorTemplate} yearNavigatorTemplate={yearNavigatorTemplate} required autoFocus className={classNames({ 'p-invalid': submitted && !birth })} />
+                                                    {submitted && !birth && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="dpi">DPI</label>
+                                                    <InputText id="dpi" value={dpi} onChange={(t) => setDpi(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !dpi })} />
+                                                    {submitted && !dpi && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan={2}>
+                                                <div className="p-field">
+                                                    <label htmlFor="kyu">Grado</label>
+                                                    <Dropdown id="kyu" optionLabel="kyu" optionValue="id" value={kyuId} options={kyus} onChange={(t) => setKyuId(t.target.value)} placeholder="Select Kyu..." required autoFocus className={classNames({ 'p-invalid': submitted && !kyuId })} />
+                                                    {submitted && !kyuId && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td>
+                                {viewUpload ?
+                                    <div>
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <Image src={"http://localhost:9898/api/file/" + dpi} alt="Image" width="250" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    : null}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </Dialog>
 
             <Dialog visible={deleteTrainerDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteTrainerDialogFooter} onHide={hideDeleteTrainerDialog}>
