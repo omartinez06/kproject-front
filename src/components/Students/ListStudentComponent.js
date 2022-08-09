@@ -12,8 +12,11 @@ import { Toast } from 'primereact/toast';
 import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import KyuService from '../../services/KyuService';
-import ScheduleService from './../../services/ScheduleService'
+import ScheduleService from './../../services/ScheduleService';
+import FileService from '../../services/FileService';
 import './../TableCrud.css';
+import { FileUpload } from 'primereact/fileupload';
+import { Image } from 'primereact/image';
 
 const ListStudentComponent = () => {
 
@@ -36,6 +39,7 @@ const ListStudentComponent = () => {
     const [selectedStudent, setSelectedStudent] = useState('');
     const history = useHistory();
     const toast = useRef(null);
+    const [viewUpload, setViewUpload] = useState(false);
 
     const bloodTypeSelectItems = [
         { label: 'O Negativo', value: 'O-' },
@@ -129,6 +133,11 @@ const ListStudentComponent = () => {
     const setEditableStudent = (editableStudent) => {
         getAllKyus();
         getAllSchedules();
+        FileService.getFileImage(editableStudent.dpi).then((response) => {
+            console.debug(response.data);
+        }).catch(error => {
+            console.error(error);
+        })
         setName(editableStudent.name);
         setLastName(editableStudent.lastName);
         setDpi(editableStudent.dpi);
@@ -149,19 +158,38 @@ const ListStudentComponent = () => {
                 StudentService.updateStudent(id, student).then((response) => {
                     history.push('/student')
                     getAllStudents();
+                    setStudentDialog(false);
+                    setName('');
+                    setLastName('');
+                    setDpi('');
+                    setKyuId('');
+                    setBirth('');
+                    setBloodType('');
+                    setTutor('');
+                    setSchedule('');
+                    setSchedules([]);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Modificado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
                 })
             } else {
                 StudentService.createStudent(student).then((response) => {
-                    history.push('/student')
-                    getAllStudents();
+                    setViewUpload(true);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Agregado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
                 })
             }
+        }
+    }
+
+    const customUploader = async (event) => {
+        // convert file to base64 encoded 
+        const file = event.files[0];
+        FileService.createFileImage(file, dpi).then((response) => {
+            console.debug(response.data);
+            history.push('/student');
+            getAllStudents();
             setStudentDialog(false);
             setName('');
             setLastName('');
@@ -172,7 +200,10 @@ const ListStudentComponent = () => {
             setTutor('');
             setSchedule('');
             setSchedules([]);
-        }
+            toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded with Basic Mode' });
+        }).catch(error => {
+            console.error(error);
+        })
     }
 
     const studentDialogFooter = (
@@ -255,55 +286,105 @@ const ListStudentComponent = () => {
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>
 
-            <Dialog visible={studentDialog} style={{ width: '25%' }} header="Student Details" modal className="p-fluid" footer={studentDialogFooter} onHide={hideDialog}>
-                <div className="p-field">
-                    <label htmlFor="name">Nombre</label>
-                    <InputText id="name" value={name} onChange={(t) => setName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !name })} />
-                    {submitted && !name && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="lastName">Apellido</label>
-                    <InputText id="lastName" value={lastName} onChange={(t) => setLastName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !lastName })} />
-                    {submitted && !lastName && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field p-col-12 p-md-4">
-                    <label htmlFor="birth">Fecha De Nacimiento</label>
-                    <Calendar id="birth" value={birth} onChange={(t) => setBirth(t.value)} monthNavigator yearNavigator yearRange="1930:2030" dateFormat="dd/mm/yy"
-                        monthNavigatorTemplate={monthNavigatorTemplate} yearNavigatorTemplate={yearNavigatorTemplate} required autoFocus className={classNames({ 'p-invalid': submitted && !birth })} />
-                    {submitted && !birth && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="dpi">DPI</label>
-                    <InputText id="dpi" value={dpi} onChange={(t) => setDpi(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !dpi })} />
-                    {submitted && !dpi && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="kyu">Grado</label>
-                    <Dropdown id="kyu" optionLabel="kyu" optionValue="id" value={kyuId} options={kyus} onChange={(t) => setKyuId(t.target.value)} placeholder="Seleccione grado..." required autoFocus className={classNames({ 'p-invalid': submitted && !kyuId })} />
-                    {submitted && !kyuId && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="dpi">Tipo De Sangre</label>
-                    <Dropdown value={bloodType} options={bloodTypeSelectItems} onChange={(t) => setBloodType(t.target.value)} optionLabel="label" placeholder="Seleccione tipo de sangre..." required autoFocus className={classNames({ 'p-invalid': submitted && !bloodType })} />
-                    {submitted && !bloodType && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="tutor">Tutor</label>
-                    <InputText id="tutor" value={tutor} onChange={(t) => setTutor(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !tutor })} />
-                    {submitted && !tutor && <small className="p-error">Campo Requerido.</small>}
-                </div>
-                <br />
-                <div className="p-field">
-                    <label htmlFor="schedule">Horario</label>
-                    <Dropdown id="schedule" optionLabel="schedule" optionValue="id" value={schedule} options={schedules} onChange={(e) => setSchedule(e.target.value)} placeholder="Seleccione Horario" maxSelectedLabels={5} required autoFocus className={classNames({ 'p-invalid': submitted && !schedule })} />
-                    {submitted && !schedule && <small className="p-error">Campo Requerido.</small>}
-                </div>
+            <Dialog visible={studentDialog} style={{ width: '50%' }} header="Student Details" modal className="p-fluid" footer={studentDialogFooter} onHide={hideDialog}>
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="name">Nombre</label>
+                                                    <InputText id="name" value={name} onChange={(t) => setName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !name })} />
+                                                    {submitted && !name && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="lastName">Apellido</label>
+                                                    <InputText id="lastName" value={lastName} onChange={(t) => setLastName(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !lastName })} />
+                                                    {submitted && !lastName && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div className="p-field p-col-12 p-md-4">
+                                                    <label htmlFor="birth">Fecha De Nacimiento</label>
+                                                    <Calendar id="birth" value={birth} onChange={(t) => setBirth(t.value)} monthNavigator yearNavigator yearRange="1930:2030" dateFormat="dd/mm/yy"
+                                                        monthNavigatorTemplate={monthNavigatorTemplate} yearNavigatorTemplate={yearNavigatorTemplate} required autoFocus className={classNames({ 'p-invalid': submitted && !birth })} />
+                                                    {submitted && !birth && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="dpi">DPI</label>
+                                                    <InputText id="dpi" value={dpi} onChange={(t) => setDpi(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !dpi })} />
+                                                    {submitted && !dpi && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan={2}>
+                                                <div className="p-field">
+                                                    <label htmlFor="tutor">Tutor</label>
+                                                    <InputText id="tutor" value={tutor} onChange={(t) => setTutor(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !tutor })} />
+                                                    {submitted && !tutor && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="kyu">Grado</label>
+                                                    <Dropdown id="kyu" optionLabel="kyu" optionValue="id" value={kyuId} options={kyus} onChange={(t) => setKyuId(t.target.value)} placeholder="Seleccione grado..." required autoFocus className={classNames({ 'p-invalid': submitted && !kyuId })} />
+                                                    {submitted && !kyuId && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="dpi">Tipo De Sangre</label>
+                                                    <Dropdown value={bloodType} options={bloodTypeSelectItems} onChange={(t) => setBloodType(t.target.value)} optionLabel="label" placeholder="Seleccione tipo de sangre..." required autoFocus className={classNames({ 'p-invalid': submitted && !bloodType })} />
+                                                    {submitted && !bloodType && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="schedule">Horario</label>
+                                                    <Dropdown id="schedule" optionLabel="schedule" optionValue="id" value={schedule} options={schedules} onChange={(e) => setSchedule(e.target.value)} placeholder="Seleccione Horario" maxSelectedLabels={5} required autoFocus className={classNames({ 'p-invalid': submitted && !schedule })} />
+                                                    {submitted && !schedule && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td>
+                                <div>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <Image src={'localhost:9898/api/file/' + dpi + '.jpg'} alt="Image" width="250" preview />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </Dialog>
 
             <Dialog visible={deleteStudentDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteStudentDialogFooter} onHide={hideDeleteStudentDialog}>
