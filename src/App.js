@@ -6,6 +6,7 @@ import ListKyuComponent from './components/Kyus/ListKyuComponent';
 import ListTrainerComponent from './components/Trainers/ListTrainerComponent';
 import ListScheduleComponent from './components/Schedule/ListScheduleComponent';
 import ListStudentComponent from './components/Students/ListStudentComponent';
+import GymLoginRegister from './components/LoginRegister/GymLoginRegister';
 
 function App() {
   return (
@@ -14,7 +15,7 @@ function App() {
         <HeaderComponent />
         <div className='container'>
           <Switch>
-            <Route exact path="/" component={ListStudentComponent}></Route>
+            <Route exact path="/" component={GymLoginRegister}></Route>
             <Route path="/kyu" component={ListKyuComponent}></Route>
             <Route path="/trainer" component={ListTrainerComponent}></Route>
             <Route path="/schedule" component={ListScheduleComponent}></Route>

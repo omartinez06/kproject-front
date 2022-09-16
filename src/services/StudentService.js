@@ -1,27 +1,27 @@
-import axios from 'axios'
+import axiosInstance from "./AxiosInstance";
 
 const STUDENT_BASE_RESP_API_URL = 'http://localhost:9898/api/students';
 
 class StudentService {
 
     getAllStudents() {
-        return axios.get(STUDENT_BASE_RESP_API_URL);
+        return axiosInstance.get(STUDENT_BASE_RESP_API_URL);
     }
 
     createStudent(student) {
-        return axios.post(STUDENT_BASE_RESP_API_URL, student);
+        return axiosInstance.post(STUDENT_BASE_RESP_API_URL, student);
     }
 
     getStudentById(studentId) {
-        return axios.get(`${STUDENT_BASE_RESP_API_URL}/${studentId}`);
+        return axiosInstance.get(`${STUDENT_BASE_RESP_API_URL}/${studentId}`);
     }
 
     updateStudent(studentId, student) {
-        return axios.put(`${STUDENT_BASE_RESP_API_URL}/${studentId}`, student);
+        return axiosInstance.put(`${STUDENT_BASE_RESP_API_URL}/${studentId}`, student);
     }
 
     deleteStudent(studentId) {
-        return axios.delete(`${STUDENT_BASE_RESP_API_URL}/${studentId}`);
+        return axiosInstance.delete(`${STUDENT_BASE_RESP_API_URL}/${studentId}`);
     }
 
 }

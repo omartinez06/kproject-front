@@ -1,26 +1,26 @@
-import axios from 'axios'
+import axiosInstance from "./AxiosInstance";
 
 const KYU_BASE_RESP_API_URL = 'http://localhost:9898/api/kyu';
 
 class KyuService {
     getAllKyus() {
-        return axios.get(KYU_BASE_RESP_API_URL);
+        return axiosInstance.get(KYU_BASE_RESP_API_URL);
     }
 
     createKyu(kyu) {
-        return axios.post(KYU_BASE_RESP_API_URL, kyu);
+        return axiosInstance.post(KYU_BASE_RESP_API_URL, kyu);
     }
 
     getKyuById(kyuId) {
-        return axios.get(`${KYU_BASE_RESP_API_URL}/${kyuId}`);
+        return axiosInstance.get(`${KYU_BASE_RESP_API_URL}/${kyuId}`);
     }
 
     updateKyu(kyuId, kyu) {
-        return axios.put(`${KYU_BASE_RESP_API_URL}/${kyuId}`, kyu);
+        return axiosInstance.put(`${KYU_BASE_RESP_API_URL}/${kyuId}`, kyu);
     }
 
     deleteKyu(kyuId) {
-        return axios.delete(`${KYU_BASE_RESP_API_URL}/${kyuId}`);
+        return axiosInstance.delete(`${KYU_BASE_RESP_API_URL}/${kyuId}`);
     }
 }
 

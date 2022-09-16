@@ -1,26 +1,26 @@
-import axios from 'axios'
+import axiosInstance from "./AxiosInstance";
 
 const TRAINER_BASE_RESP_API_URL = 'http://localhost:9898/api/trainers';
 
 class TrainerService {
     getAllTrainers() {
-        return axios.get(TRAINER_BASE_RESP_API_URL);
+        return axiosInstance.get(TRAINER_BASE_RESP_API_URL);
     }
 
     createTrainer(trainer) {
-        return axios.post(TRAINER_BASE_RESP_API_URL, trainer);
+        return axiosInstance.post(TRAINER_BASE_RESP_API_URL, trainer);
     }
 
     getTrainerById(trainerId) {
-        return axios.get(`${TRAINER_BASE_RESP_API_URL}/${trainerId}`);
+        return axiosInstance.get(`${TRAINER_BASE_RESP_API_URL}/${trainerId}`);
     }
 
     updateTrainer(trainerId, trainer) {
-        return axios.put(`${TRAINER_BASE_RESP_API_URL}/${trainerId}`, trainer);
+        return axiosInstance.put(`${TRAINER_BASE_RESP_API_URL}/${trainerId}`, trainer);
     }
 
     deleteTrainer(trainerId) {
-        return axios.delete(`${TRAINER_BASE_RESP_API_URL}/${trainerId}`);
+        return axiosInstance.delete(`${TRAINER_BASE_RESP_API_URL}/${trainerId}`);
     }
 }
 
