@@ -10,6 +10,8 @@ import { Dialog } from 'primereact/dialog';
 import { classNames } from 'primereact/utils';
 import { Toast } from 'primereact/toast';
 import './../TableCrud.css';
+import HeaderComponent from '../HeaderComponent';
+import FooterComponent from '../FooterComponent';
 
 const ListKyuComponent = () => {
 
@@ -158,6 +160,7 @@ const ListKyuComponent = () => {
 
     return (
         <div className="datatable-crud">
+            <HeaderComponent />
             <Toast ref={toast} />
             <Toolbar className="p-mb-4" left={leftToolbarTemplate}></Toolbar>
             <DataTable value={kyus}
@@ -183,6 +186,7 @@ const ListKyuComponent = () => {
                     {selectedKyu && <span> Esta seguro de borrar <b>{selectedKyu.kyu}</b> ? </span>}
                 </div>
             </Dialog>
+            <FooterComponent />
         </div>
     )
 }

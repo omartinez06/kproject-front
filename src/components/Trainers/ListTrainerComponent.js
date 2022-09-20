@@ -16,6 +16,8 @@ import './../TableCrud.css';
 import { FileUpload } from 'primereact/fileupload';
 import { Image } from 'primereact/image';
 import FileService from '../../services/FileService';
+import HeaderComponent from '../HeaderComponent';
+import FooterComponent from '../FooterComponent';
 
 const ListTrainerComponent = () => {
 
@@ -231,6 +233,7 @@ const ListTrainerComponent = () => {
 
     return (
         <div className="datatable-crud">
+            <HeaderComponent />
             <Toast ref={toast} />
             <Toolbar className="p-mb-4" left={leftToolbarTemplate}></Toolbar>
             <DataTable value={trainers}
@@ -330,6 +333,7 @@ const ListTrainerComponent = () => {
                     {selectedTrainer && <span> Esta seguro de borrar a <b>{name} {lastName}</b> ? </span>}
                 </div>
             </Dialog>
+            <FooterComponent />
         </div>
     )
 

@@ -49,7 +49,11 @@ const HeaderComponent = () => {
         },
         {
             label: 'Quit',
-            icon: 'pi pi-fw pi-power-off'
+            icon: 'pi pi-fw pi-power-off',
+            command: () => {
+                localStorage.removeItem('token');
+                window.location = "/";
+            }
         }
     ];
 

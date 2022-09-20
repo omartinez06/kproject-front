@@ -12,6 +12,8 @@ import { Toast } from 'primereact/toast';
 import { MultiSelect } from 'primereact/multiselect';
 import { InputNumber } from 'primereact/inputnumber';
 import './../TableCrud.css';
+import HeaderComponent from '../HeaderComponent';
+import FooterComponent from '../FooterComponent';
 
 const ListScheduleComponent = () => {
 
@@ -170,6 +172,7 @@ const ListScheduleComponent = () => {
 
     return (
         <div className="datatable-crud">
+            <HeaderComponent />
             <Toast ref={toast} />
             <Toolbar className="p-mb-4" left={leftToolbarTemplate}></Toolbar>
 
@@ -225,6 +228,7 @@ const ListScheduleComponent = () => {
                     {selectedSchedule && <span> Esta seguro de borrar <b>{selectedSchedule.schedule}</b> ? </span>}
                 </div>
             </Dialog>
+            <FooterComponent />
         </div>
     )
 }
