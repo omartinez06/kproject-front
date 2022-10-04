@@ -43,6 +43,17 @@ const HeaderComponent = () => {
                                 }
                             ]
                         },
+                        {
+                            label: 'Administracion',
+                            icon: 'pi pi-users',
+                            items: [
+                                {
+                                    label: 'Pagos',
+                                    icon: 'pi pi-users',
+                                    command: () => { window.location.href = "/payment" }
+                                },
+                            ]
+                        },
                     ]
                 }
             ]

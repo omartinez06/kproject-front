@@ -42,6 +42,7 @@ const ListStudentComponent = () => {
     const history = useHistory();
     const toast = useRef(null);
     const [viewUpload, setViewUpload] = useState(false);
+    const [quota, setQuota] = useState(0);
 
     const bloodTypeSelectItems = [
         { label: 'O Negativo', value: 'O-' },
@@ -98,6 +99,7 @@ const ListStudentComponent = () => {
         getAllKyus();
         setStudentDialog(true);
         setSubmitted(false);
+        setQuota(0);
     }
 
     const confirmDeleteStudent = (studentDeleted) => {
@@ -144,14 +146,15 @@ const ListStudentComponent = () => {
         setTutor(editableStudent.tutor);
         setSchedule(editableStudent.schedule.id);
         setId(editableStudent.id);
+        setQuota(editableStudent.quota);
         setViewUpload(true);
         setStudentDialog(true);
     }
 
     const saveOrUpdateStudent = () => {
         setSubmitted(true);
-        if (name && lastName && dpi && birth && kyuId && bloodType && tutor && schedule) {
-            const student = { name, lastName, dpi, birth, bloodType, tutor, schedule, kyuId }
+        if (name && lastName && dpi && birth && kyuId && bloodType && tutor && schedule && quota) {
+            const student = { name, lastName, dpi, birth, bloodType, tutor, schedule, kyuId, quota }
             if (id) {
                 StudentService.updateStudent(id, student).then((response) => {
                     history.push('/student')
@@ -165,6 +168,7 @@ const ListStudentComponent = () => {
                     setBloodType('');
                     setTutor('');
                     setSchedule('');
+                    setQuota(0);
                     setSchedules([]);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Modificado', life: 3000 });
                 }).catch(error => {
@@ -198,6 +202,7 @@ const ListStudentComponent = () => {
             setTutor('');
             setSchedule('');
             setSchedules([]);
+            setQuota(0);
             window.location.reload(false);
             toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
         }).catch(error => {
@@ -266,7 +271,7 @@ const ListStudentComponent = () => {
     }
 
     const imageBodyTemplate = (rowData) => {
-        return <img src={"http://localhost:9898/api/file/" + rowData.dpi} onError={(e) => e.target.src='https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
+        return <img src={"http://localhost:9898/api/file/" + rowData.dpi} onError={(e) => e.target.src = 'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
     }
 
     return (
@@ -363,6 +368,13 @@ const ListStudentComponent = () => {
                                                     <label htmlFor="schedule">Horario</label>
                                                     <Dropdown id="schedule" optionLabel="schedule" optionValue="id" value={schedule} options={schedules} onChange={(e) => setSchedule(e.target.value)} placeholder="Seleccione Horario" maxSelectedLabels={5} required autoFocus className={classNames({ 'p-invalid': submitted && !schedule })} />
                                                     {submitted && !schedule && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="quota">Cuota Mensual (Quetzalez)</label>
+                                                    <InputText id="quota" value={quota} onChange={(t) => setQuota(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !quota })} />
+                                                    {submitted && !quota && <small className="p-error">Campo Requerido.</small>}
                                                 </div>
                                             </td>
                                         </tr>

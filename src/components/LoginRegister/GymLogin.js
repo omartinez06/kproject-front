@@ -7,6 +7,7 @@ import { Password } from 'primereact/password';
 import { Panel } from 'primereact/panel';
 import LoginRegisterService from './../../services/LoginRegisterService';
 
+
 const GymLoginRegister = () => {
 
     const toast = useRef(null);

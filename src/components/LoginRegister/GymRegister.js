@@ -23,6 +23,10 @@ const GymRegister = () => {
             LoginRegisterService.createGym(gym).then((response) => {
                 console.log(response);
                 toast.current.show({ severity: 'success', summary: 'SUCCESS', detail: 'Usuario registrado.', life: 3000 });
+                var millisecondsToWait = 3000;
+                setTimeout(function () {
+                    history.push('/');
+                }, millisecondsToWait);
             }).catch(error => {
                 toast.current.show({ severity: 'error', summary: 'ERROR', detail: "Credenciales Invalidas", life: 3000 });
             })
@@ -37,27 +41,27 @@ const GymRegister = () => {
             <Toast ref={toast} />
             <Panel header="Registro">
                 <div className="p-field p-grid">
-                <div className="p-col">
+                    <div className="p-col">
                         <span className="p-float-label">
                             <InputText id="name" value={name} onChange={(e) => setName(e.target.value)} />
                             <label htmlFor="name">Nombre</label>
                         </span>
                     </div>
-                    <br/>
+                    <br />
                     <div className="p-col">
                         <span className="p-float-label">
                             <InputText id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
                             <label htmlFor="address">Direccion</label>
                         </span>
                     </div>
-                    <br/>
+                    <br />
                     <div className="p-col">
                         <span className="p-float-label">
                             <InputText id="manager" value={manager} onChange={(e) => setManager(e.target.value)} />
                             <label htmlFor="manager">Encargado</label>
                         </span>
                     </div>
-                    <br/>
+                    <br />
                     <div className="p-col">
                         <span className="p-float-label">
                             <InputText id="user" value={user} onChange={(e) => setUser(e.target.value)} />
