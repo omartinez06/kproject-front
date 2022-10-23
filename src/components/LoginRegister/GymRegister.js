@@ -4,7 +4,7 @@ import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
-import { Panel } from 'primereact/panel';
+import { Image } from 'primereact/image';
 import LoginRegisterService from './../../services/LoginRegisterService';
 
 const GymRegister = () => {
@@ -37,9 +37,10 @@ const GymRegister = () => {
 
 
     return (
-        <div className="form-demo flex justify-content-center">
-            <Toast ref={toast} />
-            <Panel header="Registro">
+        <div style={{ width: '360px', padding: '8% 0 0', margin: 'auto' }}>
+            <div className="p-field p-grid" style={{ position: 'relative', width: '360px', margin: '0 auto 100px', padding: '45px', textAlign: 'center', boxShadow: '0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24)' }}>
+                <Toast ref={toast} />
+                <Image src="http://localhost:9898/api/file/shitokai" alt="Image" width="250" />
                 <div className="p-field p-grid">
                     <div className="p-col">
                         <span className="p-float-label">
@@ -81,8 +82,8 @@ const GymRegister = () => {
                     </div>
                     <br />
                 </div>
-            </Panel>
-        </div>
+            </div>
+        </div >
     )
 }
 export default GymRegister

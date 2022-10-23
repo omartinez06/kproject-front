@@ -5,56 +5,56 @@ const HeaderComponent = () => {
     const items = [
         {
             label: 'Inicio',
-            icon: 'pi pi-fw pi-file',
+            icon: 'pi pi-chart-line',
+            command: () => {
+                window.location = "/dashboard";
+            }
+        },
+        {
+            label: 'Mantenimiento',
+            icon: 'pi pi-pencil',
             items: [
                 {
-                    label: 'Mantenimiento',
-                    icon: 'pi pi-fw pi-plus',
-                    items: [
-                        {
-                            label: 'Equipo',
-                            icon: 'pi pi-users',
-                            items: [
-                                {
-                                    label: 'Entrenadores',
-                                    icon: 'pi pi-users',
-                                    command: () => { window.location.href = "/trainer" }
-                                },
-                                {
-                                    label: 'Alumnos',
-                                    icon: 'pi pi-users',
-                                    command: () => { window.location.href = "/student" }
-                                }
-                            ]
-                        },
-                        {
-                            label: 'Mantenimiento',
-                            icon: 'pi pi-users',
-                            items: [
-                                {
-                                    label: 'Grados',
-                                    icon: 'pi pi-users',
-                                    command: () => { window.location.href = "/kyu" }
-                                },
-                                {
-                                    label: 'Horarios',
-                                    icon: 'pi pi-users',
-                                    command: () => { window.location.href = "/schedule" }
-                                }
-                            ]
-                        },
-                        {
-                            label: 'Administracion',
-                            icon: 'pi pi-users',
-                            items: [
-                                {
-                                    label: 'Pagos',
-                                    icon: 'pi pi-users',
-                                    command: () => { window.location.href = "/payment" }
-                                },
-                            ]
-                        },
-                    ]
+                    label: 'Grados',
+                    icon: 'pi pi-plus',
+                    command: () => { window.location.href = "/kyu" }
+                },
+                {
+                    label: 'Horarios',
+                    icon: 'pi pi-calendar',
+                    command: () => { window.location.href = "/schedule" }
+                }
+            ]
+        },
+        {
+            label: 'Equipo',
+            icon: 'pi pi-users',
+            items: [
+                {
+                    label: 'Entrenadores',
+                    icon: 'pi pi-user',
+                    command: () => { window.location.href = "/trainer" }
+                },
+                {
+                    label: 'Alumnos',
+                    icon: 'pi pi-user',
+                    command: () => { window.location.href = "/student" }
+                }
+            ]
+        },
+        {
+            label: 'Administracion',
+            icon: 'pi pi-money-bill',
+            items: [
+                {
+                    label: 'Pagos',
+                    icon: 'pi pi-paypal',
+                    command: () => { window.location.href = "/payment" }
+                },
+                {
+                    label: 'Eventos',
+                    icon: 'pi pi-sitemap',
+                    command: () => { window.location.href = "/event" }
                 }
             ]
         },

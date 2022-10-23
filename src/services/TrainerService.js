@@ -22,6 +22,11 @@ class TrainerService {
     deleteTrainer(trainerId) {
         return axiosInstance.delete(`${TRAINER_BASE_RESP_API_URL}/${trainerId}`);
     }
+
+    getTrainerQuantity(){
+        return axiosInstance.get(`${TRAINER_BASE_RESP_API_URL}/quantity`);
+    }
+
 }
 
 

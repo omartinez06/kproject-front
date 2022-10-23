@@ -241,7 +241,7 @@ const ListPaymentComponent = () => {
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>
 
-            <Dialog visible={paymentDialog} style={{ width: '30%' }} header="Payment Details" modal className="p-fluid" footer={paymentDialogFooter} onHide={hideDialog}>
+            <Dialog visible={paymentDialog} style={{ width: '40%' }} header="Payment Details" modal className="p-fluid" footer={paymentDialogFooter} onHide={hideDialog}>
 
                 <table>
                     <tbody>

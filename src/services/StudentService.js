@@ -24,6 +24,10 @@ class StudentService {
         return axiosInstance.delete(`${STUDENT_BASE_RESP_API_URL}/${studentId}`);
     }
 
+    getStudentQuantity(){
+        return axiosInstance.get(`${STUDENT_BASE_RESP_API_URL}/quantity`);
+    }
+
 }
 
 export default new StudentService();
