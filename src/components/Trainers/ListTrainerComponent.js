@@ -36,7 +36,10 @@ const ListTrainerComponent = () => {
     const [deleteTrainerDialog, setDeleteTrainerDialog] = useState(false);
     const history = useHistory();
     const toast = useRef(null);
-    const [viewUpload, setViewUpload] = useState(false);
+    const [viewCamera, setViewCamera] = useState(true);
+
+    let videoRef = useRef(null);
+    let photoRef = useRef(null);
 
     useEffect(() => {
         getAllTrainers();
@@ -59,6 +62,27 @@ const ListTrainerComponent = () => {
         }).catch(error => {
             console.error(error);
         })
+    }
+
+    const getVideo = () => {
+        navigator.mediaDevices
+            .getUserMedia({
+                video: true
+            })
+            .then((stream) => {
+                let video = videoRef.current;
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    };
+
+    const clearImage = () => {
+        let photo = photoRef.current
+        let ctx = photo.getContext('2d')
+        ctx.clearRect(0, 0, photo.width, photo.height)
     }
 
     const openNew = () => {
@@ -112,8 +136,61 @@ const ListTrainerComponent = () => {
         setBirth(new Date(editableTrainer.birth));
         setKyuId(editableTrainer.kyu.id);
         setId(editableTrainer.id);
-        setViewUpload(true);
         setTrainerDialog(true);
+        setViewCamera(false);
+    }
+
+    const validateInformationBeforePhoto = () => {
+        if (!(name || lastName || birth || dpi || kyuId)) {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'Llene toda la informacion antes de la foto', life: 3000 });
+            return false;
+        }
+
+        return true;
+    }
+
+    let imageDataUrl = "";
+
+    const takePicture = () => {
+        if (validateInformationBeforePhoto()) {
+            const width = 400
+            const height = 300
+            let video = videoRef.current
+            let photo = photoRef.current
+            photo.width = width
+            photo.height = height
+            let ctx = photo.getContext('2d')
+            ctx.drawImage(video, 0, 0, width, height);
+            let image_data_url = photo.toDataURL('image/png');
+
+            // data url of the image
+            console.log(image_data_url);
+            imageDataUrl = image_data_url;
+        }
+    }
+
+    const optionUpload = () => {
+        if (viewCamera) {
+            setViewCamera(false);
+        } else {
+            getVideo();
+            setViewCamera(true);
+        }
+    }
+
+    const savePicture = () => {
+        fetch(imageDataUrl)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], dpi + '.png', { type: "image/png" })
+                FileService.createFileImage(file, dpi).then((response) => {
+                    console.debug(response.data);
+                    window.location.reload(false);
+                    toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
+                }).catch(error => {
+                    console.error(error);
+                })
+            })
     }
 
     const saveOrUpdateTrainer = () => {
@@ -122,6 +199,9 @@ const ListTrainerComponent = () => {
             const trainer = { name, lastName, kyuId, birth, dpi }
             if (id) {
                 TrainerService.updateTrainer(id, trainer).then((response) => {
+                    if (viewCamera) {
+                        savePicture();
+                    }
                     history.push('/trainer')
                     getAllTrainers();
                     setTrainerDialog(false);
@@ -137,7 +217,18 @@ const ListTrainerComponent = () => {
                 })
             } else {
                 TrainerService.createTrainer(trainer).then((response) => {
-                    setViewUpload(true);
+                    if (viewCamera) {
+                        savePicture();
+                    }
+                    history.push('/trainer')
+                    getAllTrainers();
+                    setTrainerDialog(false);
+                    setName('');
+                    setLastName('');
+                    setDpi('');
+                    setBirth('');
+                    setKyuId('');
+                    setId('');
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Entrenador Creado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
@@ -226,9 +317,9 @@ const ListTrainerComponent = () => {
     const yearNavigatorTemplate = (e) => {
         return <Dropdown value={e.value} options={e.options} onChange={(event) => e.onChange(event.originalEvent, event.value)} className="p-ml-2" style={{ lineHeight: 1 }} />;
     }
-    
+
     const imageBodyTemplate = (rowData) => {
-        return <img src={"http://localhost:9898/api/file/" + rowData.dpi} onError={(e) => e.target.src='https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
+        return <img src={"http://localhost:9898/api/file/" + rowData.dpi} onError={(e) => e.target.src = 'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
     }
 
     return (
@@ -303,24 +394,65 @@ const ListTrainerComponent = () => {
                                 </table>
                             </td>
                             <td>
-                                {viewUpload ?
-                                    <div>
-                                        <table>
-                                            <tbody>
-                                                <tr>
-                                                    <td>
-                                                        <Image src={"http://localhost:9898/api/file/" + dpi} alt="Image" width="250" />
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>
-                                                        <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    : null}
+                                {viewCamera ?
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <video style={{ width: '100%' }} ref={videoRef} className="container"></video>
+                                                </td>
+                                                <td>
+                                                    <table>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <Button icon="pi pi-camera" className="p-button-rounded p-button-success" aria-label="Take Picture" onClick={takePicture} />
+                                                                </td>
+                                                                <td>
+                                                                    <Button icon="pi pi-upload" className="p-button-rounded p-button-secondary" aria-label="Subir Imagen" onClick={optionUpload} />
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <canvas style={{ width: '100%' }} className="container" ref={photoRef}></canvas>
+                                                </td>
+                                                <td>
+                                                    <Button icon="pi pi-times" className="p-button-rounded p-button-danger" aria-label="Cancel" onClick={clearImage} />
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    :
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <Image src={"http://localhost:9898/api/file/" + dpi} alt="Image" width="250" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <table>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
+                                                                </td>
+                                                                <td>
+                                                                    <Button icon="pi pi-camera" className="p-button-rounded p-button-secondary" aria-label="Tomar Fotografia" onClick={optionUpload} />
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                }
                             </td>
                         </tr>
                     </tbody>

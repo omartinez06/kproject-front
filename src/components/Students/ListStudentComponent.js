@@ -14,6 +14,7 @@ import { Dropdown } from 'primereact/dropdown';
 import KyuService from '../../services/KyuService';
 import ScheduleService from './../../services/ScheduleService';
 import FileService from '../../services/FileService';
+import PaymentService from './../../services/PaymentService';
 import './../TableCrud.css';
 import { FileUpload } from 'primereact/fileupload';
 import { Image } from 'primereact/image';
@@ -41,8 +42,10 @@ const ListStudentComponent = () => {
     const [selectedStudent, setSelectedStudent] = useState('');
     const history = useHistory();
     const toast = useRef(null);
-    const [viewUpload, setViewUpload] = useState(false);
     const [quota, setQuota] = useState(0);
+    const [viewCamera, setViewCamera] = useState(true);
+    const [viewPayments, setViewPayments] = useState(false);
+    const [payments, setPayments] = useState([]);
 
     const bloodTypeSelectItems = [
         { label: 'O Negativo', value: 'O-' },
@@ -54,6 +57,9 @@ const ListStudentComponent = () => {
         { label: 'AB Negativo', value: 'AB-' },
         { label: 'AB Positivo', value: 'AB+' }
     ];
+
+    let videoRef = useRef(null);
+    let photoRef = useRef(null);
 
     useEffect(() => {
         getAllStudents();
@@ -85,6 +91,37 @@ const ListStudentComponent = () => {
         })
     }
 
+    const getVideo = () => {
+        navigator.mediaDevices
+            .getUserMedia({
+                video: true
+            })
+            .then((stream) => {
+                let video = videoRef.current;
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    };
+
+    const getAllPayments = (studentId) => {
+
+        PaymentService.getAllPayments().then((response) => {
+            let paymentsData = [];
+            for (let x = 0; x < response.data.length; x++) {
+                if (response.data[x].student.id === studentId) {
+                    paymentsData.push(response.data[x]);
+                }
+            }
+            setPayments(paymentsData);
+            console.log("Pagos del alumno: " + paymentsData);
+        }).catch(error => {
+            console.error(error);
+        })
+    }
+
     const openNew = () => {
         setName('');
         setLastName('');
@@ -100,6 +137,8 @@ const ListStudentComponent = () => {
         setStudentDialog(true);
         setSubmitted(false);
         setQuota(0);
+        getVideo();
+        setViewPayments(false);
     }
 
     const confirmDeleteStudent = (studentDeleted) => {
@@ -132,6 +171,7 @@ const ListStudentComponent = () => {
         setSubmitted(false);
         setStudentDialog(false);
         setId('');
+        setPayments([]);
     }
 
     const setEditableStudent = (editableStudent) => {
@@ -147,8 +187,63 @@ const ListStudentComponent = () => {
         setSchedule(editableStudent.schedule.id);
         setId(editableStudent.id);
         setQuota(editableStudent.quota);
-        setViewUpload(true);
         setStudentDialog(true);
+        setViewCamera(false);
+        getAllPayments(editableStudent.id);
+        setViewPayments(true);
+    }
+
+    const validateInformationBeforePhoto = () => {
+        if (!(name || lastName || birth || dpi || tutor)) {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'Llene toda la informacion antes de la foto', life: 3000 });
+            return false;
+        }
+
+        return true;
+    }
+
+    let imageDataUrl = "";
+
+    const takePicture = () => {
+        if (validateInformationBeforePhoto()) {
+            const width = 400
+            const height = 300
+            let video = videoRef.current
+            let photo = photoRef.current
+            photo.width = width
+            photo.height = height
+            let ctx = photo.getContext('2d')
+            ctx.drawImage(video, 0, 0, width, height);
+            let image_data_url = photo.toDataURL('image/png');
+
+            // data url of the image
+            console.log(image_data_url);
+            imageDataUrl = image_data_url;
+        }
+    }
+
+    const optionUpload = () => {
+        if (viewCamera) {
+            setViewCamera(false);
+        } else {
+            getVideo();
+            setViewCamera(true);
+        }
+    }
+
+    const savePicture = () => {
+        fetch(imageDataUrl)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], dpi + '.png', { type: "image/png" })
+                FileService.createFileImage(file, dpi).then((response) => {
+                    console.debug(response.data);
+                    window.location.reload(false);
+                    toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
+                }).catch(error => {
+                    console.error(error);
+                })
+            })
     }
 
     const saveOrUpdateStudent = () => {
@@ -157,6 +252,9 @@ const ListStudentComponent = () => {
             const student = { name, lastName, dpi, birth, bloodType, tutor, schedule, kyuId, quota }
             if (id) {
                 StudentService.updateStudent(id, student).then((response) => {
+                    if (viewCamera) {
+                        savePicture();
+                    }
                     history.push('/student')
                     getAllStudents();
                     setStudentDialog(false);
@@ -176,7 +274,22 @@ const ListStudentComponent = () => {
                 })
             } else {
                 StudentService.createStudent(student).then((response) => {
-                    setViewUpload(true);
+                    if (viewCamera) {
+                        savePicture();
+                    }
+                    history.push('/student')
+                    getAllStudents();
+                    setStudentDialog(false);
+                    setName('');
+                    setLastName('');
+                    setDpi('');
+                    setKyuId('');
+                    setBirth('');
+                    setBloodType('');
+                    setTutor('');
+                    setSchedule('');
+                    setQuota(0);
+                    setSchedules([]);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Agregado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
@@ -258,8 +371,18 @@ const ListStudentComponent = () => {
 
     }
 
+    const clearImage = () => {
+        let photo = photoRef.current
+        let ctx = photo.getContext('2d')
+        ctx.clearRect(0, 0, photo.width, photo.height)
+    }
+
     const dateBodyFormat = (rowData) => {
         return formatDate(rowData.birth);
+    }
+
+    const dateBodyFormatPayment = (rowData) => {
+        return formatDate(rowData.paymentDate);
     }
 
     const monthNavigatorTemplate = (e) => {
@@ -296,7 +419,7 @@ const ListStudentComponent = () => {
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>
 
-            <Dialog visible={studentDialog} style={{ width: '50%' }} header="Student Details" modal className="p-fluid" footer={studentDialogFooter} onHide={hideDialog}>
+            <Dialog visible={studentDialog} style={{ width: '60%' }} header="Student Details" modal className="p-fluid" footer={studentDialogFooter} onHide={hideDialog}>
 
                 <table>
                     <tbody>
@@ -382,26 +505,83 @@ const ListStudentComponent = () => {
                                 </table>
                             </td>
                             <td>
-                                {viewUpload ?
-                                    <div>
-                                        <table>
-                                            <tbody>
-                                                <tr>
-                                                    <td>
-                                                        <Image src={"http://localhost:9898/api/file/" + dpi} alt="Image" width="250" />
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>
-                                                        <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    : null}
+                                {viewCamera ?
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <video style={{ width: '100%' }} ref={videoRef} className="container"></video>
+                                                </td>
+                                                <td>
+                                                    <table>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <Button icon="pi pi-camera" className="p-button-rounded p-button-success" aria-label="Take Picture" onClick={takePicture} />
+                                                                </td>
+                                                                <td>
+                                                                    <Button icon="pi pi-upload" className="p-button-rounded p-button-secondary" aria-label="Subir Imagen" onClick={optionUpload} />
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <canvas style={{ width: '100%' }} className="container" ref={photoRef}></canvas>
+                                                </td>
+                                                <td>
+                                                    <Button icon="pi pi-times" className="p-button-rounded p-button-danger" aria-label="Cancel" onClick={clearImage} />
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    :
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <Image src={"http://localhost:9898/api/file/" + dpi} alt="Image" width="250" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
+                                                            </td>
+                                                            <td>
+                                                                <Button icon="pi pi-camera" className="p-button-rounded p-button-secondary" aria-label="Tomar Fotografia" onClick={optionUpload} />
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                }
                             </td>
                         </tr>
+                        {viewPayments ?
+                            <tr>
+                                <td colSpan={3}>
+                                    <DataTable value={payments}
+                                        dataKey="id" paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
+                                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} entrenadores" header="Pagos"
+                                        scrollable scrollHeight="400px">
+                                        <Column field="paymentDate" header="FECHA DE PAGO" sortable style={{ minWidth: '10rem' }} body={dateBodyFormatPayment}></Column>
+                                        <Column field="depositTicket" header="ID DE COMPROBANTE" sortable style={{ minWidth: '12rem' }}></Column>
+                                        <Column field="month" header="MES" sortable style={{ minWidth: '12rem' }}></Column>
+                                        <Column field="value" header="VALOR DE CUOTA" sortable style={{ minWidth: '12rem' }}></Column>
+                                        <Column body={(rowData) => rowData.latePayment ? 'MORA' : 'PUNTUAL'} header="PAGO TARDIO" sortable style={{ minWidth: '12rem' }}></Column>
+                                    </DataTable>
+                                </td>
+                            </tr>
+                            :
+                            null}
                     </tbody>
                 </table>
             </Dialog>

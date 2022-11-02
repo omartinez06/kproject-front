@@ -9,6 +9,7 @@ import GymLogin from './components/LoginRegister/GymLogin';
 import GymRegister from './components/LoginRegister/GymRegister'
 import Events from './components/Events/ListEventsComponent';
 import Dashboard from './components/Dashboard/Dashboard';
+import Streaming from './components/Streaming';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/payment" component={ListPaymentComponent}></Route>
             <Route path="/event" component={Events}></Route>
             <Route path="/dashboard" component={Dashboard}></Route>
+            <Route path="/streaming" component={Streaming}></Route>
           </Switch>
         </div>
       </Router>

@@ -19,6 +19,8 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
 import FileService from '../../services/FileService';
+import { FileUpload } from 'primereact/fileupload';
+import { Image } from 'primereact/image';
 
 const ListEventsComponent = () => {
 
@@ -51,6 +53,7 @@ const ListEventsComponent = () => {
     const [competitorCategory, setCompetitorCategory] = useState();
     const [dataCompetitors, setDataCompetitors] = useState([]);
     const [optionsCategories, setOptionsCategories] = useState([]);
+    const [viewCamera, setViewCamera] = useState(true);
     const [diagramTournament, setDiagramTournament] = useState([{
         label: '',
         expanded: true,
@@ -356,7 +359,6 @@ const ListEventsComponent = () => {
     };
 
     const validateInformationBeforePhoto = () => {
-        debugger;
         console.log(competitorName);
         if (!(competitorName || competitorLastName || competitorAddress || competitorCell || competitorDojo)) {
             toast.current.show({ severity: 'error', summary: 'Error', detail: 'Llene toda la informacion antes de la foto', life: 3000 });
@@ -365,6 +367,8 @@ const ListEventsComponent = () => {
 
         return true;
     }
+
+    let imageDataUrl = "";
 
     const takePicture = () => {
         if (validateInformationBeforePhoto()) {
@@ -376,26 +380,57 @@ const ListEventsComponent = () => {
             photo.height = height
             let ctx = photo.getContext('2d')
             ctx.drawImage(video, 0, 0, width, height);
-            let image_data_url = photo.toDataURL('image/jpeg');
+            let image_data_url = photo.toDataURL('image/png');
 
             // data url of the image
             console.log(image_data_url);
-            
-            /*const file = ctx.drawImage(video, 0, 0, width, height);
-            FileService.createFileImage(image_data_url, "test").then((response) => {
-                console.debug(response.data);
-                window.location.reload(false);
-                toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
-            }).catch(error => {
-                console.error(error);
-            })*/
+            imageDataUrl = image_data_url;
         }
+    }
+
+    const savePicture = () => {
+        fetch(imageDataUrl)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], competitorName + competitorLastName + '.png', { type: "image/png" })
+                FileService.createFileImage(file, competitorName + competitorLastName).then((response) => {
+                    console.debug(response.data);
+                    window.location.reload(false);
+                    toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
+                }).catch(error => {
+                    console.error(error);
+                })
+            })
     }
 
     const clearImage = () => {
         let photo = photoRef.current
         let ctx = photo.getContext('2d')
         ctx.clearRect(0, 0, photo.width, photo.height)
+    }
+
+    const optionUpload = () => {
+        if (viewCamera) {
+            setViewCamera(false);
+        } else {
+            getVideo();
+            setViewCamera(true);
+        }
+    }
+
+    const customUploader = async (event) => {
+        // convert file to base64 encoded 
+        if (validateInformationBeforePhoto()) {
+            const file = event.files[0];
+            FileService.createFileImage(file, competitorName + competitorName).then((response) => {
+                console.debug(response.data);
+                cleanInformation();
+                addCompetitor();
+                toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
+            }).catch(error => {
+                console.error(error);
+            })
+        }
     }
 
     const setFillEvent = (rowData) => {
@@ -414,12 +449,53 @@ const ListEventsComponent = () => {
         </React.Fragment>
     );
 
+    const createElemenDiagram = (label, avatar) => {
+        let element = {
+            label: label,
+            avatar: avatar
+        }
+        return element;
+    }
+
+    const fillDiagram = (rowData) => {
+        if (dataCompetitors.length > 0) {
+            var counter = 0;
+            var counterWinner = 0;
+            let children = [];
+            let childrenFather = [];
+            dataCompetitors.forEach((comp) => {
+                counter++;
+                let element = createElemenDiagram(comp.name, comp.name + comp.lastName);
+                children.push(element);
+                if (counter === 2) {
+                    counter = 0;
+                    counterWinner++;
+                    let elementFather = {
+                        label: 'Ganador ' + counterWinner,
+                        expanded: true,
+                        children: children
+                    }
+                    childrenFather.push(elementFather);
+                }
+            })
+            setDiagramTournament({
+                label: 'Ganador',
+                expanded: true,
+                children: childrenFather
+            });
+            setVisibleDiagram(true);
+        } else {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'No se han ingresado competidores', life: 3000 });
+        }
+    }
+
     const actionBody = (rowData) => {
         return (
             <React.Fragment>
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => setEditableEvent(rowData)} />
                 <Button icon="pi pi-database" className="p-button-rounded" onClick={() => setFillEvent(rowData)} />
                 <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => confirmDeleteEvent(rowData)} />
+                <Button icon="pi pi-sitemap" className="p-button-rounded" onClick={() => fillDiagram(rowData)} />
             </React.Fragment>
         );
     }
@@ -452,58 +528,6 @@ const ListEventsComponent = () => {
         );
     }
 
-    const fillDiagramCompetitors = () => {
-        let generalDataCompetitors = [];
-        for (let x = 0; x < dataCompetitors.length; x = (x + 2)) {
-            let comp1 = {
-                label: dataCompetitors[x]
-            };
-
-            let comp2 = {
-                label: dataCompetitors[x + 1]
-            };
-            let data = {
-                label: 'Ganador entre ' + dataCompetitors[x] + ' y ' + dataCompetitors[x + 1],
-                expanded: true,
-                children: [
-                    comp1,
-                    comp2
-                ]
-            }
-            generalDataCompetitors.push(data);
-        }
-
-        if (generalDataCompetitors.length <= 2) {
-            let data = {
-                label: 'Ganador',
-                expanded: true,
-                children: [
-                    generalDataCompetitors[0],
-                    generalDataCompetitors[1]
-                ]
-            }
-            setDiagramTournament(data);
-        }
-        setVisibleDiagram(true);
-    }
-
-    const eventFillDialogFooter = (
-        <React.Fragment>
-            <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideFillEventDialog} />
-            <Button label="Aceptar" icon="pi pi-check" className="p-button-text" onClick={fillDiagramCompetitors} />
-        </React.Fragment>
-    );
-
-    const cleanInformation = () => {
-        setCompetitorName('');
-        setCompetitorLastName('');
-        setCompetitorAddress('');
-        setCompetitorBloodType();
-        setCompetitorCell();
-        setCompetitorDojo('');
-        setCompetitorCountry();
-    }
-
     const addCompetitor = () => {
         let competitorList = dataCompetitors;
         let competitor = {
@@ -520,6 +544,43 @@ const ListEventsComponent = () => {
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Competidor Agregado', life: 3000 });
         console.log(competitorList);
         cleanInformation();
+        setFillDialog(false);
+        if (viewCamera) {
+            savePicture();
+        }
+    }
+
+    const eventFillDialogFooter = (
+        <React.Fragment>
+            <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideFillEventDialog} />
+            <Button label="Aceptar" icon="pi pi-check" className="p-button-text" onClick={addCompetitor} />
+        </React.Fragment>
+    );
+
+    const cleanInformation = () => {
+        setCompetitorName('');
+        setCompetitorLastName('');
+        setCompetitorAddress('');
+        setCompetitorBloodType();
+        setCompetitorCell();
+        setCompetitorDojo('');
+        setCompetitorCountry();
+    }
+
+    const nodeTemplate = (node) => {
+        if (node.type === "person") {
+            return (
+                <div>
+                    <div className="node-header">{node.label}</div>
+                    <div className="node-content">
+                        <img src={`http://localhost:9898/api/file/${node.avatar}`} onError={(e) => e.target.src = 'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} style={{ width: '32px' }} />
+                        <div>{node.label}</div>
+                    </div>
+                </div>
+            );
+        }
+
+        return node.label;
     }
 
     return (
@@ -625,7 +686,7 @@ const ListEventsComponent = () => {
                                                     <label htmlFor="competitorCell">Telefono: </label>
                                                 </td>
                                                 <td>
-                                                    <InputNumber id="competitorCell" value={competitorCell} onChange={(t) => setCompetitorCell(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !competitorCell })} />
+                                                    <InputNumber id="competitorCell" value={competitorCell} onChange={(t) => setCompetitorCell(t.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !competitorCell })} />
                                                     {submitted && !competitorCell && <small className="p-error">Campo Requerido.</small>}
                                                 </td>
                                             </tr>
@@ -658,26 +719,63 @@ const ListEventsComponent = () => {
                                     </table>
                                 </td>
                                 <td>
-                                    <table>
-                                        <tbody>
-                                            <tr>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <video style={{ width: '55%' }} ref={videoRef} className="container"></video>
-                                                </td>
-                                                <td>
-                                                    <Button icon="pi pi-camera" className="p-button-rounded p-button-success" aria-label="Take Picture" onClick={takePicture} />
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <canvas style={{ width: '55%' }} className="container" ref={photoRef}></canvas>
-                                                </td>
-                                                <td>
-                                                    <Button icon="pi pi-times" className="p-button-rounded p-button-danger" aria-label="Cancel" onClick={clearImage} />
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                    {viewCamera ?
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <video style={{ width: '100%' }} ref={videoRef} className="container"></video>
+                                                    </td>
+                                                    <td>
+                                                        <table>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>
+                                                                        <Button icon="pi pi-camera" className="p-button-rounded p-button-success" aria-label="Take Picture" onClick={takePicture} />
+                                                                    </td>
+                                                                    <td>
+                                                                        <Button icon="pi pi-upload" className="p-button-rounded p-button-secondary" aria-label="Subir Imagen" onClick={optionUpload} />
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <canvas style={{ width: '100%' }} className="container" ref={photoRef}></canvas>
+                                                    </td>
+                                                    <td>
+                                                        <Button icon="pi pi-times" className="p-button-rounded p-button-danger" aria-label="Cancel" onClick={clearImage} />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        :
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <Image src={"http://localhost:9898/api/file/" + competitorName + competitorName} alt="Image" width="250" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <table>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <FileUpload mode="basic" name="files[]" url="localhost:9898/api/file" accept=".jpg" maxFileSize={1000000} customUpload uploadHandler={customUploader} />
+                                                                </td>
+                                                                <td>
+                                                                    <Button icon="pi pi-camera" className="p-button-rounded p-button-secondary" aria-label="Tomar Fotografia" onClick={optionUpload} />
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    }
                                 </td>
                             </tr>
                         </tbody>
@@ -725,7 +823,7 @@ const ListEventsComponent = () => {
                     <tbody>
                         <tr>
                             <td>
-                                <OrganizationChart value={diagramTournament}></OrganizationChart>
+                                <OrganizationChart value={diagramTournament} nodeTemplate={nodeTemplate}></OrganizationChart>
                             </td>
                         </tr>
                     </tbody>

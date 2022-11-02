@@ -106,30 +106,34 @@ const ListScheduleComponent = () => {
     const saveOrUpdateSchedule = () => {
         setSubmitted(true);
         if (schedule && ageMin && ageMax) {
-            let ageRange = ageMin + ' - ' + ageMax;
-            let days = daysArray.toString();
-            const newSchedule = { schedule, days, ageRange }
-            console.log(newSchedule);
-            if (id) {
-                ScheduleService.updateSchedule(id, newSchedule).then((response) => {
-                    history.push('/schedule');
-                    getAllSchedules();
-                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Horario Modificado', life: 3000 });
-                }).catch(error => {
-                    console.error(error);
-                })
+            if (ageMax > ageMin) {
+                let ageRange = ageMin + ' - ' + ageMax;
+                let days = daysArray.toString();
+                const newSchedule = { schedule, days, ageRange }
+                console.log(newSchedule);
+                if (id) {
+                    ScheduleService.updateSchedule(id, newSchedule).then((response) => {
+                        history.push('/schedule');
+                        getAllSchedules();
+                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Horario Modificado', life: 3000 });
+                    }).catch(error => {
+                        console.error(error);
+                    })
+                } else {
+                    ScheduleService.createSchedule(newSchedule).then((response) => {
+                        history.push('/schedule');
+                        getAllSchedules();
+                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Horario Creado', life: 3000 });
+                    }).catch(error => {
+                        console.error(error);
+                    })
+                }
+                setScheduleDialog(false);
+                setSchedule('');
+                setDaysArray();
             } else {
-                ScheduleService.createSchedule(newSchedule).then((response) => {
-                    history.push('/schedule');
-                    getAllSchedules();
-                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Horario Creado', life: 3000 });
-                }).catch(error => {
-                    console.error(error);
-                })
+                toast.current.show({ severity: 'error', summary: 'Error', detail: 'Edades Invalidas', life: 3000 });
             }
-            setScheduleDialog(false);
-            setSchedule('');
-            setDaysArray();
         }
     }
 

@@ -20,10 +20,31 @@ const Dashboard = () => {
         }
     });
 
-    useEffect(() => {
+    const [basicData, setBasicData] = useState();
 
+    useEffect(() => {
         getStudents();
         getTrainers();
+        setBasicData({
+            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+            datasets: [
+                {
+                    label: 'Ingresos (Q)',
+                    data: [1000,1500,2500,1500,3000,3000,3500,3000,1500,2000,2500,3000],
+                    fill: true,
+                    borderColor: '#66BB6A',
+                    tension: .4
+                },
+                {
+                    label: 'Ingresos Año Anterior (Q)',
+                    data: [500,500,500,500,300,300,350,300,150,200,200,300],
+                    fill: false,
+                    borderDash: [5, 5],
+                    tension: .4,
+                    borderColor: '#66BB6A'
+                }
+            ]
+        });
         setCharData({
             labels: ['Estudiantes', 'Entrenadores'],
             datasets: [
@@ -42,13 +63,13 @@ const Dashboard = () => {
         });
 
 
-    }, []);
+    }, [students, trainers]);
 
     const getStudents = () => {
         StudentService.getStudentQuantity().then((response) => {
-
+            console.log(response);
             setStudents(response.data);
-
+            console.log("Students: " + response.date);
         }).catch(error => {
             console.error(error);
         })
@@ -58,6 +79,7 @@ const Dashboard = () => {
         TrainerService.getTrainerQuantity().then((response) => {
 
             setTrainers(response.data);
+            console.log("Trainers: " + response.date);
 
         }).catch(error => {
             console.error(error);
@@ -67,7 +89,8 @@ const Dashboard = () => {
     return (
         <div className="datatable-crud">
             <HeaderComponent />
-            <Chart type="polarArea" data={chartData} options={lightOptions} style={{ position: 'relative', width: '40%' }} />
+            <Chart type="polarArea" data={chartData} options={lightOptions} style={{ position: 'relative', width: '20%' }} />
+            <Chart type="line" data={basicData} style={{ position: 'relative', width: '30%' }} />
             <FooterComponent />
         </div>
     )
