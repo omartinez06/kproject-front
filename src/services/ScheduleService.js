@@ -22,6 +22,10 @@ class ScheduleService {
     deleteSchedule(scheduleId) {
         return axiosInstance.delete(`${SCHEDULE_BASE_RESP_API_URL}/${scheduleId}`);
     }
+
+    getStudentQuantity(){
+        return axiosInstance.get(`${SCHEDULE_BASE_RESP_API_URL}/quantity`);
+    }
 }
 
 export default new ScheduleService();

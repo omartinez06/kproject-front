@@ -35,9 +35,15 @@ const GymLoginRegister = () => {
     }
 
     const enterWithToken = () => {
-        setViewTokenInfo(true);
         TokenService.generateToken().then((response) => {
-            toast.current.show({ severity: 'success', summary: 'TOKEN', detail: response.data.token, life: 3000 });
+            if(response.data !== null && response.data !== "") {
+                console.log(response.data);
+                toast.current.show({ severity: 'success', summary: 'TOKEN', detail: response.data.token, life: 3000 });
+                setViewTokenInfo(true);
+            } else {
+                toast.current.show({ severity: 'error', summary: 'ERROR', detail: "No hay torneos activos", life: 3000 });
+            }
+           
         }).catch(error => {
             toast.current.show({ severity: 'error', summary: 'ERROR', detail: "Error to generate Token", life: 3000 });
         });

@@ -4,12 +4,16 @@ import HeaderComponent from '../HeaderComponent';
 import FooterComponent from '../FooterComponent';
 import StudentService from './../../services/StudentService';
 import TrainerService from './../../services/TrainerService';
+import PaymentService from '../../services/PaymentService';
+import { Card } from 'primereact/card';
+import ScheduleService from '../../services/ScheduleService';
 
 const Dashboard = () => {
 
     const [students, setStudents] = useState();
     const [trainers, setTrainers] = useState();
     const [chartData, setCharData] = useState();
+    const [schedule, setSchedule] = useState();
     const [lightOptions] = useState({
         plugins: {
             legend: {
@@ -21,49 +25,32 @@ const Dashboard = () => {
     });
 
     const [basicData, setBasicData] = useState();
+    const [monthValue, setMonthValue] = useState([]);
 
     useEffect(() => {
         getStudents();
         getTrainers();
-        setBasicData({
-            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-            datasets: [
-                {
-                    label: 'Ingresos (Q)',
-                    data: [1000,1500,2500,1500,3000,3000,3500,3000,1500,2000,2500,3000],
-                    fill: true,
-                    borderColor: '#66BB6A',
-                    tension: .4
-                },
-                {
-                    label: 'Ingresos Año Anterior (Q)',
-                    data: [500,500,500,500,300,300,350,300,150,200,200,300],
-                    fill: false,
-                    borderDash: [5, 5],
-                    tension: .4,
-                    borderColor: '#66BB6A'
-                }
-            ]
-        });
+        getSchedules();
+        getPaymentReport();
         setCharData({
-            labels: ['Estudiantes', 'Entrenadores'],
+            labels: ['Estudiantes', 'Entrenadores', 'Horarios'],
             datasets: [
                 {
-                    data: [students, trainers],
+                    data: [students, trainers, schedule],
                     backgroundColor: [
                         "#42A5F5",
                         "#66BB6A",
+                        "#F0FA0A"
                     ],
                     hoverBackgroundColor: [
                         "#64B5F6",
                         "#81C784",
+                        "#A3FA0A"
                     ]
                 }
             ]
         });
-
-
-    }, [students, trainers]);
+    }, [students, trainers, schedule]);
 
     const getStudents = () => {
         StudentService.getStudentQuantity().then((response) => {
@@ -86,11 +73,58 @@ const Dashboard = () => {
         })
     }
 
+    const getPaymentReport = () => {
+        PaymentService.getPaymentPerMonth().then((response) => {
+            setMonthValue(response.data);
+        })
+
+        let dataLabel = [];
+        let dataValues = [];
+        for (let x = 0; x < monthValue.length; x++) {
+            dataLabel.push(monthValue[x].month);
+            dataValues.push(monthValue[x].value);
+        }
+
+        setBasicData({
+            labels: dataLabel,
+            datasets: [
+                {
+                    label: 'Ingresos (Q)',
+                    data: dataValues,
+                    fill: true,
+                    borderColor: '#66BB6A',
+                    tension: .4
+                }
+            ]
+        });
+    }
+
+    const getSchedules = () => {
+        ScheduleService.getStudentQuantity().then((response) => {
+
+            setSchedule(response.data);
+            console.log("Schedules: " + response.date);
+
+        }).catch(error => {
+            console.error(error);
+        })
+    }
+
     return (
         <div className="datatable-crud">
             <HeaderComponent />
-            <Chart type="polarArea" data={chartData} options={lightOptions} style={{ position: 'relative', width: '20%' }} />
-            <Chart type="line" data={basicData} style={{ position: 'relative', width: '30%' }} />
+            <div className="grid">
+                <div className="col-4" style={{ textAlign: 'center' }}>
+                    <Card title="Estudiantes y Alumnos Totales" style={{ width: '25em' }}>
+                        <Chart type="polarArea" data={chartData} options={lightOptions} />
+                    </Card>
+                </div>
+                <div className="col-4" style={{ textAlign: 'center' }}>
+                    <Card title="Ingresos Año Actual" style={{ width: '40em' }}>
+                        <Chart type="line" data={basicData} />
+                    </Card>
+                </div>
+            </div>
             <FooterComponent />
         </div>
     )

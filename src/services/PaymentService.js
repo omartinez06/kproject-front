@@ -23,6 +23,10 @@ class PaymentService {
     deletePayment(paymentId) {
         return axiosInstance.delete(`${PAYMENT_BASE_RESP_API_URL}/${paymentId}`);
     }
+
+    getPaymentPerMonth(){
+        return axiosInstance.get(`${PAYMENT_BASE_RESP_API_URL}/report`);
+    }
 }
 
 export default new PaymentService();

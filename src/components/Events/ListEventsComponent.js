@@ -21,6 +21,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import FileService from '../../services/FileService';
 import { FileUpload } from 'primereact/fileupload';
 import { Image } from 'primereact/image';
+import ParticipantService from '../../services/ParticipantService';
 
 const ListEventsComponent = () => {
 
@@ -51,7 +52,6 @@ const ListEventsComponent = () => {
     const [competitorDojo, setCompetitorDojo] = useState('');
     const [competitorCountry, setCompetitorCountry] = useState();
     const [competitorCategory, setCompetitorCategory] = useState();
-    const [dataCompetitors, setDataCompetitors] = useState([]);
     const [optionsCategories, setOptionsCategories] = useState([]);
     const [viewCamera, setViewCamera] = useState(true);
     const [diagramTournament, setDiagramTournament] = useState([{
@@ -136,9 +136,9 @@ const ListEventsComponent = () => {
             console.log(response);
             response.data.forEach(category => {
                 if (category.type === 'KUMITE') {
-                    catOptions.push({ name: category.weight, code: category.weight });
+                    catOptions.push({ name: category.weight, code: category.id });
                 } else {
-                    catOptions.push({ name: category.gender + ' ' + category.type, code: category.gender + ' ' + category.type });
+                    catOptions.push({ name: category.gender + ' ' + category.type, code: category.id });
                 }
             });
         }).catch(error => {
@@ -434,12 +434,18 @@ const ListEventsComponent = () => {
     }
 
     const setFillEvent = (rowData) => {
-        setFillDialog(true);
-        fillOptionsCategories(rowData.id);
-        setEventId(rowData.id);
-        setName(rowData.name);
-        setVisibleDiagram(false);
-        getVideo();
+        let today = new Date;
+        let dateToCompare = new Date(rowData.finalDate);
+        if ( dateToCompare< today) {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'Evento Finalizado.' });
+        } else {
+            setFillDialog(true);
+            fillOptionsCategories(rowData.id);
+            setEventId(rowData.id);
+            setName(rowData.name);
+            setVisibleDiagram(false);
+            getVideo();
+        }
     }
 
     const deleteEventDialogFooter = (
@@ -449,44 +455,8 @@ const ListEventsComponent = () => {
         </React.Fragment>
     );
 
-    const createElemenDiagram = (label, avatar) => {
-        let element = {
-            label: label,
-            avatar: avatar
-        }
-        return element;
-    }
-
     const fillDiagram = (rowData) => {
-        if (dataCompetitors.length > 0) {
-            var counter = 0;
-            var counterWinner = 0;
-            let children = [];
-            let childrenFather = [];
-            dataCompetitors.forEach((comp) => {
-                counter++;
-                let element = createElemenDiagram(comp.name, comp.name + comp.lastName);
-                children.push(element);
-                if (counter === 2) {
-                    counter = 0;
-                    counterWinner++;
-                    let elementFather = {
-                        label: 'Ganador ' + counterWinner,
-                        expanded: true,
-                        children: children
-                    }
-                    childrenFather.push(elementFather);
-                }
-            })
-            setDiagramTournament({
-                label: 'Ganador',
-                expanded: true,
-                children: childrenFather
-            });
-            setVisibleDiagram(true);
-        } else {
-            toast.current.show({ severity: 'error', summary: 'Error', detail: 'No se han ingresado competidores', life: 3000 });
-        }
+
     }
 
     const actionBody = (rowData) => {
@@ -529,25 +499,27 @@ const ListEventsComponent = () => {
     }
 
     const addCompetitor = () => {
-        let competitorList = dataCompetitors;
         let competitor = {
             name: competitorName,
             lastName: competitorLastName,
             address: competitorAddress,
-            bloodType: competitorBloodType,
-            cellphone: competitorCell,
+            bloodType: competitorBloodType.code,
+            phone: competitorCell,
             dojo: competitorDojo,
-            country: competitorCountry
+            country: competitorCountry.code,
+            eventId: eventId,
+            categoryId: competitorCategory.code
         }
-        competitorList.push(competitor);
-        setDataCompetitors(competitorList);
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Competidor Agregado', life: 3000 });
-        console.log(competitorList);
-        cleanInformation();
-        setFillDialog(false);
-        if (viewCamera) {
-            savePicture();
-        }
+        ParticipantService.createParticipant(competitor).then((response) => {
+            toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Competidor Agregado', life: 3000 });
+            if (viewCamera) {
+                savePicture();
+            }
+            cleanInformation();
+            setFillDialog(false);
+        }).catch(error => {
+            console.error(error);
+        })
     }
 
     const eventFillDialogFooter = (
@@ -686,7 +658,7 @@ const ListEventsComponent = () => {
                                                     <label htmlFor="competitorCell">Telefono: </label>
                                                 </td>
                                                 <td>
-                                                    <InputNumber id="competitorCell" value={competitorCell} onChange={(t) => setCompetitorCell(t.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !competitorCell })} />
+                                                    <InputNumber id="competitorCell" value={competitorCell} onChange={(t) => setCompetitorCell(t.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !competitorCell })} useGrouping={false} />
                                                     {submitted && !competitorCell && <small className="p-error">Campo Requerido.</small>}
                                                 </td>
                                             </tr>
