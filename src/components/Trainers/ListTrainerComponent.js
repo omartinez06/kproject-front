@@ -94,6 +94,7 @@ const ListTrainerComponent = () => {
         getAllKyus();
         setSubmitted(false);
         setTrainerDialog(true);
+        getVideo();
     }
 
     const confirmDeleteTrainer = (trainerDeleted) => {

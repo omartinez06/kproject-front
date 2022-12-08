@@ -59,6 +59,11 @@ const HeaderComponent = () => {
             ]
         },
         {
+            label: 'Streaming',
+            icon: 'pi pi-youtube',
+            command: () => { window.location.href = "/streamingAdmin" }
+        },
+        {
             label: 'Quit',
             icon: 'pi pi-fw pi-power-off',
             command: () => {

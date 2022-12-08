@@ -35,25 +35,22 @@ const GymLoginRegister = () => {
     }
 
     const enterWithToken = () => {
-        TokenService.generateToken().then((response) => {
-            if(response.data !== null && response.data !== "") {
-                console.log(response.data);
-                toast.current.show({ severity: 'success', summary: 'TOKEN', detail: response.data.token, life: 3000 });
-                setViewTokenInfo(true);
-            } else {
-                toast.current.show({ severity: 'error', summary: 'ERROR', detail: "No hay torneos activos", life: 3000 });
-            }
-           
-        }).catch(error => {
-            toast.current.show({ severity: 'error', summary: 'ERROR', detail: "Error to generate Token", life: 3000 });
-        });
+        setViewTokenInfo(true);
     }
 
     const validateToken = () => {
-        if(token){
-            TokenService.validateToken(token).then((response) => {
-                if(response.data){
-                    history.push("/streaming")
+        if (token) {
+            TokenService.isAvailableEvent().then((response) => {
+                if (response.data) {
+                    TokenService.validateToken(token).then((resp) => {
+                        if (resp.data) {
+                            history.push("/streaming")
+                        } else {
+                            toast.current.show({ severity: 'error', summary: 'ERROR', detail: "Token invalido", life: 3000 });
+                        }
+                    })
+                } else {
+                    toast.current.show({ severity: 'error', summary: 'ERROR', detail: "No hay eventos activos", life: 3000 });
                 }
             })
         }
@@ -72,6 +69,9 @@ const GymLoginRegister = () => {
                         </span>
                         <div className="p-col flex align-items-center justify-content-center">
                             <Button label="Validar Token" className="p-button-link" onClick={validateToken} />
+                        </div>
+                        <div className="p-col flex align-items-center justify-content-center">
+                            <Button className="pi pi-step-backward" onClick={() => setViewTokenInfo(false)} />
                         </div>
                     </div>
                     :
@@ -97,11 +97,11 @@ const GymLoginRegister = () => {
                         <div className="p-col flex align-items-center justify-content-center">
                             <Button label="Registrate" className="p-button-link" onClick={register} />
                         </div>
+                        <div className="p-col flex align-items-center justify-content-center">
+                            <Button label="Entrar con token" className="p-button-link" onClick={enterWithToken} />
+                        </div>
                     </div>
                 }
-                <div className="p-col flex align-items-center justify-content-center">
-                    <Button label="Entrar con token" className="p-button-link" onClick={enterWithToken} />
-                </div>
             </div>
         </div >
     )

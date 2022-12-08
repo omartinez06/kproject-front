@@ -94,6 +94,16 @@ const ListPaymentComponent = () => {
         setSelectedPayment(paymentDeleted);
     }
 
+    const validPaymentAction = (payment) => {
+        PaymentService.validatePayment(payment.id).then((response) => {
+            toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Pago Aprovado exitosamente', life: 3000 });
+            getAllPayments();
+        }).catch(error => {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'No se pudo aprobar el pago', life: 3000 });
+            console.error(error);
+        })
+    }
+
     const leftToolbarTemplate = () => {
         return (
             <React.Fragment>
@@ -196,6 +206,11 @@ const ListPaymentComponent = () => {
             <React.Fragment>
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => setEditablePayment(rowData)} />
                 <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => confirmDeletePayment(rowData)} />
+                {rowData.valid === false ?
+                    <Button icon="pi pi-check" className="p-button-rounded" onClick={() => validPaymentAction(rowData)} />
+                    :
+                    null
+                }
             </React.Fragment>
         );
     }
@@ -223,6 +238,14 @@ const ListPaymentComponent = () => {
         }
     }
 
+    const validPayment = (rowData) => {
+        if (rowData.valid === true) {
+            return "VALIDO";
+        } else {
+            return "PENDIENTE";
+        }
+    }
+
     return (
         <div className="datatable-crud">
             <HeaderComponent />
@@ -237,6 +260,7 @@ const ListPaymentComponent = () => {
                 <Column field="depositTicket" header="ID DE COMPROBANTE" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="month" header="MES" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="value" header="VALOR DE CUOTA" sortable style={{ minWidth: '12rem' }}></Column>
+                <Column body={validPayment} header="VALIDO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column body={status} header="PAGO TARDIO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>

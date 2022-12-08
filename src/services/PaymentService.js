@@ -24,8 +24,12 @@ class PaymentService {
         return axiosInstance.delete(`${PAYMENT_BASE_RESP_API_URL}/${paymentId}`);
     }
 
-    getPaymentPerMonth(){
+    getPaymentPerMonth() {
         return axiosInstance.get(`${PAYMENT_BASE_RESP_API_URL}/report`);
+    }
+
+    validatePayment(paymentId) {
+        return axiosInstance.put(`${PAYMENT_BASE_RESP_API_URL}/valid/${paymentId}`);
     }
 }
 

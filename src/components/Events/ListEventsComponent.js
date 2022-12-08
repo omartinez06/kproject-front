@@ -465,7 +465,6 @@ const ListEventsComponent = () => {
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => setEditableEvent(rowData)} />
                 <Button icon="pi pi-database" className="p-button-rounded" onClick={() => setFillEvent(rowData)} />
                 <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => confirmDeleteEvent(rowData)} />
-                <Button icon="pi pi-sitemap" className="p-button-rounded" onClick={() => fillDiagram(rowData)} />
             </React.Fragment>
         );
     }
