@@ -260,6 +260,7 @@ const ListPaymentComponent = () => {
                 <Column field="depositTicket" header="ID DE COMPROBANTE" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="month" header="MES" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="value" header="VALOR DE CUOTA" sortable style={{ minWidth: '12rem' }}></Column>
+                <Column field="insertedBy" header="USUARIO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column body={validPayment} header="VALIDO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column body={status} header="PAGO TARDIO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>

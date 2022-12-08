@@ -44,6 +44,7 @@ const GymLoginRegister = () => {
                 if (response.data) {
                     TokenService.validateToken(token).then((resp) => {
                         if (resp.data) {
+                            window.localStorage.setItem('tokenStreaming', `${token}`);
                             history.push("/streaming")
                         } else {
                             toast.current.show({ severity: 'error', summary: 'ERROR', detail: "Token invalido", life: 3000 });
