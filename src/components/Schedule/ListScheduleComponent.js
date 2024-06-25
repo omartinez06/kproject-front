@@ -60,6 +60,7 @@ const ListScheduleComponent = () => {
         setDaysArray();
         setAgeMax('');
         setAgeMin('');
+        setId(null);
         setSubmitted(false);
         setScheduleDialog(true);
     }

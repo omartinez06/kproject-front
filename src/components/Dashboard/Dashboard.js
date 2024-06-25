@@ -28,10 +28,10 @@ const Dashboard = () => {
     const [monthValue, setMonthValue] = useState([]);
 
     useEffect(() => {
+        getPaymentReport();
         getStudents();
         getTrainers();
         getSchedules();
-        getPaymentReport();
         setCharData({
             labels: ['Estudiantes', 'Entrenadores', 'Horarios'],
             datasets: [
@@ -74,29 +74,30 @@ const Dashboard = () => {
     }
 
     const getPaymentReport = () => {
+
         PaymentService.getPaymentPerMonth().then((response) => {
-            setMonthValue(response.data);
+            let dataLabel = [];
+            let dataValues = [];
+            for (let x = 0; x < response.data.length; x++) {
+                dataLabel.push(response.data[x].month);
+                dataValues.push(response.data[x].value);
+            }
+
+            setBasicData({
+                labels: dataLabel,
+                datasets: [
+                    {
+                        label: 'Ingresos (Q)',
+                        data: dataValues,
+                        fill: true,
+                        borderColor: '#66BB6A',
+                        tension: .4
+                    }
+                ]
+            });
+        }).catch(error => {
+            console.error(error);
         })
-
-        let dataLabel = [];
-        let dataValues = [];
-        for (let x = 0; x < monthValue.length; x++) {
-            dataLabel.push(monthValue[x].month);
-            dataValues.push(monthValue[x].value);
-        }
-
-        setBasicData({
-            labels: dataLabel,
-            datasets: [
-                {
-                    label: 'Ingresos (Q)',
-                    data: dataValues,
-                    fill: true,
-                    borderColor: '#66BB6A',
-                    tension: .4
-                }
-            ]
-        });
     }
 
     const getSchedules = () => {

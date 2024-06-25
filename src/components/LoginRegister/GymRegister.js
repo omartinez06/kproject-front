@@ -15,11 +15,12 @@ const GymRegister = () => {
     const [address, setAddress] = useState("");
     const [name, setName] = useState("");
     const [manager, setManager] = useState("");
+    const [latePayment, setLatePayment] = useState("");
     const history = useHistory();
 
     const register = () => {
         if (user && password && name && manager && address) {
-            const gym = { address, name, manager, user, password }
+            const gym = { address, name, manager, user, password, latePayment }
             LoginRegisterService.createGym(gym).then((response) => {
                 console.log(response);
                 toast.current.show({ severity: 'success', summary: 'SUCCESS', detail: 'Usuario registrado.', life: 3000 });
@@ -60,6 +61,13 @@ const GymRegister = () => {
                         <span className="p-float-label">
                             <InputText id="manager" value={manager} onChange={(e) => setManager(e.target.value)} />
                             <label htmlFor="manager">Encargado</label>
+                        </span>
+                    </div>
+                    <br />
+                    <div className="p-col">
+                        <span className="p-float-label">
+                            <InputText id="late_payment" value={latePayment} onChange={(e) => setLatePayment(e.target.value)} />
+                            <label htmlFor="late_payment">Mora Mensual</label>
                         </span>
                     </div>
                     <br />

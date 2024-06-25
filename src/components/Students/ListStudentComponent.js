@@ -20,6 +20,9 @@ import { FileUpload } from 'primereact/fileupload';
 import { Image } from 'primereact/image';
 import HeaderComponent from '../HeaderComponent';
 import FooterComponent from '../FooterComponent';
+import { InputSwitch } from 'primereact/inputswitch';
+import { Tag } from 'primereact/tag';
+        
 
 const ListStudentComponent = () => {
 
@@ -28,7 +31,7 @@ const ListStudentComponent = () => {
     const [name, setName] = useState('');
     const [lastName, setLastName] = useState('');
     const [kyuId, setKyuId] = useState('');
-    const [dpi, setDpi] = useState('');
+    const [email, setEmail] = useState('');
     const [birth, setBirth] = useState('');
     const [id, setId] = useState(null);
     const [bloodType, setBloodType] = useState('');
@@ -43,9 +46,11 @@ const ListStudentComponent = () => {
     const history = useHistory();
     const toast = useRef(null);
     const [quota, setQuota] = useState(0);
+    const [applyLatePayment, setApplyLatePayment] = useState(false);
     const [viewCamera, setViewCamera] = useState(true);
     const [viewPayments, setViewPayments] = useState(false);
     const [payments, setPayments] = useState([]);
+    const [license, setLicense] = useState('');
 
     const bloodTypeSelectItems = [
         { label: 'O Negativo', value: 'O-' },
@@ -125,7 +130,8 @@ const ListStudentComponent = () => {
     const openNew = () => {
         setName('');
         setLastName('');
-        setDpi('');
+        setEmail('');
+        setLicense('');
         setKyuId('');
         setBirth('');
         setBloodType('');
@@ -138,6 +144,7 @@ const ListStudentComponent = () => {
         setSubmitted(false);
         setQuota(0);
         getVideo();
+        setApplyLatePayment(false);
         setViewPayments(false);
     }
 
@@ -179,7 +186,7 @@ const ListStudentComponent = () => {
         getAllSchedules();
         setName(editableStudent.name);
         setLastName(editableStudent.lastName);
-        setDpi(editableStudent.dpi);
+        setEmail(editableStudent.email);
         setKyuId(editableStudent.kyu.id);
         setBirth(new Date(editableStudent.birth));
         setBloodType(editableStudent.bloodType);
@@ -190,11 +197,13 @@ const ListStudentComponent = () => {
         setStudentDialog(true);
         setViewCamera(false);
         getAllPayments(editableStudent.id);
+        setApplyLatePayment(editableStudent.applyLatePayment);
+        setLicense(editableStudent.license);
         setViewPayments(true);
     }
 
     const validateInformationBeforePhoto = () => {
-        if (!(name || lastName || birth || dpi || tutor)) {
+        if (!(name || lastName || birth || email || tutor)) {
             toast.current.show({ severity: 'error', summary: 'Error', detail: 'Llene toda la informacion antes de la foto', life: 3000 });
             return false;
         }
@@ -235,8 +244,8 @@ const ListStudentComponent = () => {
         fetch(imageDataUrl)
             .then(res => res.blob())
             .then(blob => {
-                const file = new File([blob], dpi + '.png', { type: "image/png" })
-                FileService.createFileImage(file, dpi).then((response) => {
+                const file = new File([blob], license + '.png', { type: "image/png" })
+                FileService.createFileImage(file, license).then((response) => {
                     console.debug(response.data);
                     window.location.reload(false);
                     toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
@@ -248,8 +257,8 @@ const ListStudentComponent = () => {
 
     const saveOrUpdateStudent = () => {
         setSubmitted(true);
-        if (name && lastName && dpi && birth && kyuId && bloodType && tutor && schedule && quota) {
-            const student = { name, lastName, dpi, birth, bloodType, tutor, schedule, kyuId, quota }
+        if (name && lastName && email && birth && kyuId && bloodType && tutor && schedule && quota) {
+            const student = { name, lastName, email, birth, bloodType, tutor, schedule, kyuId, quota, applyLatePayment}
             if (id) {
                 StudentService.updateStudent(id, student).then((response) => {
                     if (viewCamera) {
@@ -260,7 +269,8 @@ const ListStudentComponent = () => {
                     setStudentDialog(false);
                     setName('');
                     setLastName('');
-                    setDpi('');
+                    setEmail('');
+                    setLicense('');
                     setKyuId('');
                     setBirth('');
                     setBloodType('');
@@ -268,6 +278,7 @@ const ListStudentComponent = () => {
                     setSchedule('');
                     setQuota(0);
                     setSchedules([]);
+                    setApplyLatePayment(false);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Modificado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
@@ -282,7 +293,8 @@ const ListStudentComponent = () => {
                     setStudentDialog(false);
                     setName('');
                     setLastName('');
-                    setDpi('');
+                    setEmail('');
+                    setLicense('');
                     setKyuId('');
                     setBirth('');
                     setBloodType('');
@@ -290,6 +302,7 @@ const ListStudentComponent = () => {
                     setSchedule('');
                     setQuota(0);
                     setSchedules([]);
+                    setApplyLatePayment(false);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Agregado', life: 3000 });
                 }).catch(error => {
                     console.error(error);
@@ -301,14 +314,15 @@ const ListStudentComponent = () => {
     const customUploader = async (event) => {
         // convert file to base64 encoded 
         const file = event.files[0];
-        FileService.createFileImage(file, dpi).then((response) => {
+        FileService.createFileImage(file, license).then((response) => {
             console.debug(response.data);
             history.push('/student');
             getAllStudents();
             setStudentDialog(false);
             setName('');
             setLastName('');
-            setDpi('');
+            setEmail('');
+            setLicense('');
             setKyuId('');
             setBirth('');
             setBloodType('');
@@ -316,6 +330,7 @@ const ListStudentComponent = () => {
             setSchedule('');
             setSchedules([]);
             setQuota(0);
+            setApplyLatePayment(false);
             window.location.reload(false);
             toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
         }).catch(error => {
@@ -355,6 +370,7 @@ const ListStudentComponent = () => {
         return (
             <React.Fragment>
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => setEditableStudent(rowData)} />
+                <Button icon="pi pi-wallet" className="p-button-rounded p-button" />
                 <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => confirmDeleteStudent(rowData)} />
             </React.Fragment>
         );
@@ -381,6 +397,24 @@ const ListStudentComponent = () => {
         return formatDate(rowData.birth);
     }
 
+    const getSeverity = (rowData) => {
+        debugger;
+        switch (rowData.status) {
+            case "UP_TO_DATE":
+                return 'success';
+
+            case "DELIQUENT":
+                return 'danger';
+
+            default:
+                return 'warning';
+        }
+    };
+
+    const statusBodyTemplate = (rowData) => {
+        return <Tag value={rowData.status === "UP_TO_DATE" ? "AL DIA" : rowData.status === "DELIQUENT" ? "EN MORA" : "PENDIENTE"} severity={getSeverity(rowData)}></Tag>;
+    }
+
     const dateBodyFormatPayment = (rowData) => {
         return formatDate(rowData.paymentDate);
     }
@@ -394,7 +428,7 @@ const ListStudentComponent = () => {
     }
 
     const imageBodyTemplate = (rowData) => {
-        return <img src={"http://localhost:9898/api/file/" + rowData.dpi} onError={(e) => e.target.src = 'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
+        return <img src={"http://localhost:9898/api/file/" + rowData.license} onError={(e) => e.target.src = 'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png'} width="60%" className="product-image" />
     }
 
     return (
@@ -408,14 +442,13 @@ const ListStudentComponent = () => {
                 currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} entrenadores" globalFilter={globalFilter} header={header}
                 scrollable scrollHeight="400px">
                 <Column field="image" header="IMAGEN" body={imageBodyTemplate}></Column>
+                <Column field="license" header="CARNET" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="name" header="NOMBRE" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="lastName" header="APELLIDO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="birth" header="FECHA NACIMIENTO" sortable style={{ minWidth: '10rem' }} body={dateBodyFormat}></Column>
-                <Column field="dpi" header="DPI" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="kyu.kyu" header="GRADO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="schedule.schedule" header="HORARIO" sortable style={{ minWidth: '12rem' }}></Column>
-                <Column field="bloodType" header="TIPO SANGRE" sortable style={{ minWidth: '7rem' }}></Column>
-                <Column field="tutor" header="TUTOR" sortable style={{ minWidth: '12rem' }}></Column>
+                <Column field="status" header="ESTADO" sortable style={{ minWidth: '12rem' }} body={statusBodyTemplate}></Column>
                 <Column body={actionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
             </DataTable>
 
@@ -454,9 +487,9 @@ const ListStudentComponent = () => {
                                             </td>
                                             <td>
                                                 <div className="p-field">
-                                                    <label htmlFor="dpi">DPI</label>
-                                                    <InputText id="dpi" value={dpi} onChange={(t) => setDpi(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !dpi })} />
-                                                    {submitted && !dpi && <small className="p-error">Campo Requerido.</small>}
+                                                    <label htmlFor="email">CORREO</label>
+                                                    <InputText id="email" value={email} onChange={(t) => setEmail(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !email })} />
+                                                    {submitted && !email && <small className="p-error">Campo Requerido.</small>}
                                                 </div>
                                             </td>
                                         </tr>
@@ -479,7 +512,7 @@ const ListStudentComponent = () => {
                                             </td>
                                             <td>
                                                 <div className="p-field">
-                                                    <label htmlFor="dpi">Tipo De Sangre</label>
+                                                    <label htmlFor="blodType">Tipo De Sangre</label>
                                                     <Dropdown value={bloodType} options={bloodTypeSelectItems} onChange={(t) => setBloodType(t.target.value)} optionLabel="label" placeholder="Seleccione tipo de sangre..." required autoFocus className={classNames({ 'p-invalid': submitted && !bloodType })} />
                                                     {submitted && !bloodType && <small className="p-error">Campo Requerido.</small>}
                                                 </div>
@@ -499,6 +532,14 @@ const ListStudentComponent = () => {
                                                     <InputText id="quota" value={quota} onChange={(t) => setQuota(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !quota })} />
                                                     {submitted && !quota && <small className="p-error">Campo Requerido.</small>}
                                                 </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label htmlFor="late_payment">Aplica a Mora</label>
+                                            </td>
+                                            <td>
+                                                <InputSwitch checked={applyLatePayment} onChange={(e) => setApplyLatePayment(e.value)} />
                                             </td>
                                         </tr>
                                     </tbody>
@@ -542,7 +583,7 @@ const ListStudentComponent = () => {
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <Image src={"http://localhost:9898/api/file/" + dpi} alt="Image" width="250" />
+                                                    <Image src={"http://localhost:9898/api/file/" + license} alt="Image" width="250" />
                                                 </td>
                                             </tr>
                                             <tr>
