@@ -7,6 +7,7 @@ import TrainerService from './../../services/TrainerService';
 import PaymentService from '../../services/PaymentService';
 import { Card } from 'primereact/card';
 import ScheduleService from '../../services/ScheduleService';
+import './Dashboard.css';
 
 const Dashboard = () => {
 
@@ -114,16 +115,18 @@ const Dashboard = () => {
     return (
         <div className="datatable-crud">
             <HeaderComponent />
-            <div className="grid">
-                <div className="col-4" style={{ textAlign: 'center' }}>
-                    <Card title="Estudiantes y Alumnos Totales" style={{ width: '25em' }}>
-                        <Chart type="polarArea" data={chartData} options={lightOptions} />
-                    </Card>
-                </div>
-                <div className="col-4" style={{ textAlign: 'center' }}>
-                    <Card title="Ingresos Año Actual" style={{ width: '40em' }}>
-                        <Chart type="line" data={basicData} />
-                    </Card>
+            <div className="dashboard-container">
+                <div className="grid">
+                    <div className="col-4" style={{ textAlign: 'center' }}>
+                        <Card title="Estudiantes y Alumnos Totales" className="card">
+                            <Chart type="polarArea" data={chartData} options={lightOptions} />
+                        </Card>
+                    </div>
+                    <div className="col-4" style={{ textAlign: 'center' }}>
+                        <Card title="Ingresos Año Actual" className="card">
+                            <Chart type="line" data={basicData} />
+                        </Card>
+                    </div>
                 </div>
             </div>
             <FooterComponent />

@@ -31,6 +31,10 @@ class PaymentService {
     validatePayment(paymentId) {
         return axiosInstance.put(`${PAYMENT_BASE_RESP_API_URL}/valid/${paymentId}`);
     }
+
+    generateAndSendRecipt(reciptId){
+        return axiosInstance.post(`${PAYMENT_BASE_RESP_API_URL}/recipt`, reciptId);
+    }
 }
 
 export default new PaymentService();

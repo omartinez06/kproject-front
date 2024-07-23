@@ -36,6 +36,7 @@ const ListPaymentComponent = () => {
     const [students, setStudents] = useState([]);
     const history = useHistory();
     const toast = useRef(null);
+    const [paymentType, setPaymentType] = useState('');
 
     const monthTypesSelectItems = [
         { label: 'ENERO', value: 'ENERO' },
@@ -50,6 +51,12 @@ const ListPaymentComponent = () => {
         { label: 'OCTUBRE', value: 'OCTUBRE' },
         { label: 'NOVIEMBRE', value: 'NOVIEMBRE' },
         { label: 'DICIEMBRE', value: 'DICIEMBRE' }
+    ];
+
+    const paymentTypesSelectItems = [
+        { label: 'EFECTIVO', value: 'CASH' },
+        { label: 'CHEQUE', value: 'CHECK' },
+        { label: 'DEPOSITO | TRANSFERENCIA', value: 'DEPOSIT' }
     ];
 
     useEffect(() => {
@@ -82,6 +89,7 @@ const ListPaymentComponent = () => {
         setValue(0);
         setLatePayment(false);
         setStudentId('');
+        setPaymentType('');
         setSubmitted(false);
         setPaymentDialog(true);
         setDeletePaymentDialog(false);
@@ -137,10 +145,16 @@ const ListPaymentComponent = () => {
         setLatePayment(editablePayment.latePayment);
         setPaymentDialog(true);
         setStudentId(editablePayment.student.id);
+        setPaymentType(editablePayment.type);
         setId(editablePayment.id);
     }
 
     const saveOrUpdatePayment = () => {
+
+        if(paymentType === 'CASH') {
+            setDepositTicket('Efectivo');
+        }
+
         setSubmitted(true);
         if (paymentDate && depositTicket && month && value && studentId) {
             const payment = { paymentDate, depositTicket, month, latePayment, studentId, value }
@@ -167,6 +181,7 @@ const ListPaymentComponent = () => {
             setValue(0);
             setLatePayment(false);
             setStudentId('');
+            setPaymentType('');
             setSubmitted(false);
             setPaymentDialog(false);
             setDeletePaymentDialog(false);
@@ -256,6 +271,7 @@ const ListPaymentComponent = () => {
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} entrenadores" globalFilter={globalFilter} header={header}
                 scrollable scrollHeight="400px">
+                <Column field="id" header="NO. RECIBO" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="paymentDate" header="FECHA DE PAGO" sortable style={{ minWidth: '10rem' }} body={dateBodyFormat}></Column>
                 <Column field="depositTicket" header="ID DE COMPROBANTE" sortable style={{ minWidth: '12rem' }}></Column>
                 <Column field="month" header="MES" sortable style={{ minWidth: '12rem' }}></Column>
@@ -289,11 +305,43 @@ const ListPaymentComponent = () => {
                         <tr>
                             <td>
                                 <div className="p-field">
-                                    <label htmlFor="depositTicket">No. Deposito | No. Transferencia</label>
-                                    <InputText id="depositTicket" value={depositTicket} onChange={(t) => setDepositTicket(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !depositTicket })} />
-                                    {submitted && !depositTicket && <small className="p-error">Campo Requerido.</small>}
+                                    <label htmlFor="type">Tipo de Pago</label>
+                                    <Dropdown value={paymentType} options={paymentTypesSelectItems} onChange={(t) => setPaymentType(t.target.value)} optionLabel="label" placeholder="Seleccione tipo de pago..." required autoFocus className={classNames({ 'p-invalid': submitted && !paymentType })} />
+                                    {submitted && !paymentType && <small className="p-error">Campo Requerido.</small>}
                                 </div>
                             </td>
+                            <td>
+                                {(() => {
+                                    switch (paymentType) {
+                                        case 'DEPOSIT':
+                                            return (
+                                                <div className="p-field">
+                                                    <label htmlFor="depositTicket">No. Deposito | No. Transferencia</label>
+                                                    <InputText id="depositTicket" value={depositTicket} onChange={(t) => setDepositTicket(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !depositTicket })} />
+                                                    {submitted && !depositTicket && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            );
+                                        case 'CHECK':
+                                            return (
+                                                <div className="p-field">
+                                                    <label htmlFor="depositTicket">No. Cheque</label>
+                                                    <InputText id="depositTicket" value={depositTicket} onChange={(t) => setDepositTicket(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !depositTicket })} />
+                                                    {submitted && !depositTicket && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            );
+                                        default:
+                                            return (
+                                                <div className="p-field">
+                                                    <label htmlFor="depositTicket">Pago En Efectivo</label>
+                                                    <InputText id="depositTicket" value={depositTicket} readOnly required autoFocus className={classNames({ 'p-invalid': submitted && !depositTicket })} />
+                                                    {submitted && !depositTicket && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            );
+                                    }
+                                })()}
+                            </td>
+                        </tr>
+                        <tr>
                             <td>
                                 <div className="p-field">
                                     <label htmlFor="month">Mes de Pago</label>

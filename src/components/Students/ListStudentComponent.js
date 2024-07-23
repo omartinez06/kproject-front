@@ -51,6 +51,10 @@ const ListStudentComponent = () => {
     const [viewPayments, setViewPayments] = useState(false);
     const [payments, setPayments] = useState([]);
     const [license, setLicense] = useState('');
+    const [inscription, setInscription] = useState('');
+    const [from, setFrom] = useState('');
+    const [to, setTo] = useState('');
+    const [accountStatusDialog, setAccountStatusDialog] = useState(false); 
 
     const bloodTypeSelectItems = [
         { label: 'O Negativo', value: 'O-' },
@@ -146,6 +150,7 @@ const ListStudentComponent = () => {
         getVideo();
         setApplyLatePayment(false);
         setViewPayments(false);
+        setInscription('');
     }
 
     const confirmDeleteStudent = (studentDeleted) => {
@@ -154,6 +159,12 @@ const ListStudentComponent = () => {
         setLastName(studentDeleted.lastName);
         setId(studentDeleted.id);
         setSelectedStudent(studentDeleted);
+    }
+
+    const confirmAccountStatusStudent = (student) => {
+        setAccountStatusDialog(true);
+        setId(student.id);
+        setSelectedStudent(student);
     }
 
     const leftToolbarTemplate = () => {
@@ -177,7 +188,10 @@ const ListStudentComponent = () => {
     const hideDialog = () => {
         setSubmitted(false);
         setStudentDialog(false);
+        setAccountStatusDialog(false);
         setId('');
+        setFrom('');
+        setTo('');
         setPayments([]);
     }
 
@@ -200,6 +214,15 @@ const ListStudentComponent = () => {
         setApplyLatePayment(editableStudent.applyLatePayment);
         setLicense(editableStudent.license);
         setViewPayments(true);
+        setInscription(editableStudent.inscription);
+    }
+
+    const sendRecipt = (exportableRecipt) => {
+        PaymentService.generateAndSendRecipt(exportableRecipt.id).then((response) => {
+            toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Recibo enviado correctamente.', life: 3000 });
+        }).catch(error => {
+            console.error(error);
+        })
     }
 
     const validateInformationBeforePhoto = () => {
@@ -258,7 +281,7 @@ const ListStudentComponent = () => {
     const saveOrUpdateStudent = () => {
         setSubmitted(true);
         if (name && lastName && email && birth && kyuId && bloodType && tutor && schedule && quota) {
-            const student = { name, lastName, email, birth, bloodType, tutor, schedule, kyuId, quota, applyLatePayment}
+            const student = { name, lastName, email, birth, bloodType, tutor, schedule, kyuId, quota, applyLatePayment, inscription}
             if (id) {
                 StudentService.updateStudent(id, student).then((response) => {
                     if (viewCamera) {
@@ -277,6 +300,7 @@ const ListStudentComponent = () => {
                     setTutor('');
                     setSchedule('');
                     setQuota(0);
+                    setInscription('');
                     setSchedules([]);
                     setApplyLatePayment(false);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Modificado', life: 3000 });
@@ -301,6 +325,7 @@ const ListStudentComponent = () => {
                     setTutor('');
                     setSchedule('');
                     setQuota(0);
+                    setInscription('');
                     setSchedules([]);
                     setApplyLatePayment(false);
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Alumno Agregado', life: 3000 });
@@ -308,6 +333,22 @@ const ListStudentComponent = () => {
                     console.error(error);
                 })
             }
+        }
+    }
+
+    const generateAccountStatus = () => {
+        setSubmitted(true);
+        if (from && to && id) {
+            const accountStatusObject = { from, to, id}
+            StudentService.generateAccountStatus(accountStatusObject).then((response) => {
+                history.push('/student')
+                setFrom('');
+                setTo('');
+                hideDialog();
+                toast.current.show({ severity: 'success', summary: 'Exitoso', detail: 'Estado de Cuenta Generado', life: 3000 });
+            }).catch(error => {
+                console.error(error);
+            })
         }
     }
 
@@ -330,6 +371,7 @@ const ListStudentComponent = () => {
             setSchedule('');
             setSchedules([]);
             setQuota(0);
+            setInscription('');
             setApplyLatePayment(false);
             window.location.reload(false);
             toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded Success!' });
@@ -342,6 +384,13 @@ const ListStudentComponent = () => {
         <React.Fragment>
             <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
             <Button label="Aceptar" icon="pi pi-check" className="p-button-text" onClick={saveOrUpdateStudent} />
+        </React.Fragment>
+    );
+
+    const accountStatusDialogFooter = (
+        <React.Fragment>
+            <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
+            <Button label="Aceptar" icon="pi pi-check" className="p-button-text" onClick={generateAccountStatus} />
         </React.Fragment>
     );
 
@@ -370,8 +419,16 @@ const ListStudentComponent = () => {
         return (
             <React.Fragment>
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => setEditableStudent(rowData)} />
-                <Button icon="pi pi-wallet" className="p-button-rounded p-button" />
                 <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => confirmDeleteStudent(rowData)} />
+                <Button icon="pi pi-file" className="p-button-rounded" onClick={() => confirmAccountStatusStudent(rowData)} />
+            </React.Fragment>
+        );
+    }
+
+    const paymentActionBody = (rowData) => {
+        return (
+            <React.Fragment>
+                <Button icon="pi pi-wallet" className="p-button-rounded p-button" onClick={() => sendRecipt(rowData)}/>
             </React.Fragment>
         );
     }
@@ -398,21 +455,23 @@ const ListStudentComponent = () => {
     }
 
     const getSeverity = (rowData) => {
-        debugger;
         switch (rowData.status) {
             case "UP_TO_DATE":
                 return 'success';
 
             case "DELIQUENT":
-                return 'danger';
+                return 'warning';
+
+            case "PENDING":
+                return 'info';
 
             default:
-                return 'warning';
+                return 'danger';
         }
     };
 
     const statusBodyTemplate = (rowData) => {
-        return <Tag value={rowData.status === "UP_TO_DATE" ? "AL DIA" : rowData.status === "DELIQUENT" ? "EN MORA" : "PENDIENTE"} severity={getSeverity(rowData)}></Tag>;
+        return <Tag value={rowData.status === "UP_TO_DATE" ? "AL DIA" : rowData.status === "DELIQUENT" ? "EN MORA" : rowData.status === "PENDING" ? "PENDIENTE" : "INACTIVO"} severity={getSeverity(rowData)}></Tag>;
     }
 
     const dateBodyFormatPayment = (rowData) => {
@@ -542,6 +601,15 @@ const ListStudentComponent = () => {
                                                 <InputSwitch checked={applyLatePayment} onChange={(e) => setApplyLatePayment(e.value)} />
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td>
+                                                <div className="p-field">
+                                                    <label htmlFor="inscription">Inscripcion (Quetzalez)</label>
+                                                    <InputText id="inscription" value={inscription} onChange={(t) => setInscription(t.target.value)} required autoFocus className={classNames({ 'p-invalid': submitted && !inscription })} />
+                                                    {submitted && !inscription && <small className="p-error">Campo Requerido.</small>}
+                                                </div>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </td>
@@ -618,6 +686,7 @@ const ListStudentComponent = () => {
                                         <Column field="month" header="MES" sortable style={{ minWidth: '12rem' }}></Column>
                                         <Column field="value" header="VALOR DE CUOTA" sortable style={{ minWidth: '12rem' }}></Column>
                                         <Column body={(rowData) => rowData.latePayment ? 'MORA' : 'PUNTUAL'} header="PAGO TARDIO" sortable style={{ minWidth: '12rem' }}></Column>
+                                        <Column body={paymentActionBody} exportable={false} style={{ minWidth: '8rem' }}></Column>
                                     </DataTable>
                                 </td>
                             </tr>
@@ -633,8 +702,34 @@ const ListStudentComponent = () => {
                     {selectedStudent && <span> Esta seguro de borrar <b>{name} {lastName}</b> ? </span>}
                 </div>
             </Dialog>
+
+            <Dialog visible={accountStatusDialog} style={{ width: '30%' }} header="Student Account Status" modal className="p-fluid" footer={accountStatusDialogFooter} onHide={hideDialog}>
+
+                <table>
+                <tbody>
+                        <tr>
+                            <td>
+                                <div className="p-field">
+                                    <label htmlFor="from">Desde</label>
+                                    <Calendar id="from" value={from} onChange={(e) => setFrom(e.value)} />
+                                    {submitted && !from && <small className="p-error">Campo Requerido.</small>}
+                                </div>
+                            </td>
+                            <td>
+                            <div className="p-field">
+                                    <label htmlFor="to">Hasta</label>
+                                    <Calendar id="to" value={to} onChange={(e) => setTo(e.value)} />
+                                    {submitted && !to && <small className="p-error">Campo Requerido.</small>}
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </Dialog>
             <FooterComponent />
         </div>
+
+        
     )
 }
 export default ListStudentComponent

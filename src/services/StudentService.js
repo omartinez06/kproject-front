@@ -28,6 +28,10 @@ class StudentService {
         return axiosInstance.get(`${STUDENT_BASE_RESP_API_URL}/quantity`);
     }
 
+    generateAccountStatus(accountStatusObject){
+        return axiosInstance.post(`${STUDENT_BASE_RESP_API_URL}/accst`, accountStatusObject);
+    }
+
 }
 
 export default new StudentService();
